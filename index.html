@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nirman Website</title>
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+
+<nav>
+    <a href="#page1">Sofa</a>
+    <a href="#page2">Tables</a>
+    <a href="#page3">Lighting</a>
+</nav>
+
+<section ids="page1">
+    <h1 id="p1head">Shop By Category</h1>
+    <h2>Seating</h2>
+    <div class="product-container">
+        <div class="product">
+            <img src="https://png.pngtree.com/background/20231101/original/pngtree-sleek-living-room-with-white-textured-walls-and-chic-brown-sofa-picture-image_5831665.jpg" alt="Product 1"> 
+            <p class="cost">$199.99</p>
+        </div>
+        <div class="product">
+            <img src="https://img.freepik.com/premium-photo/modern-living-room-interior-design-brown-leather-sofa-white-texture-wall-background_221619-1114.jpg" alt="Product 2"> 
+            <p class="cost">$299.99</p>
+        </div>
+        <div class="product">
+            <img src="https://png.pngtree.com/thumb_back/fw800/background/20231023/pngtree-light-brown-sofa-complements-wood-floor-in-wall-texture-background-image_13678572.png" alt="Product 3"> 
+            <p class="cost">$399.99</p>
+        </div>
+    </div>
+</section>
+
+<section id="page2">
+    <h1 id="p1head">Shop By Category</h1>
+    <h2>Tables</h2>
+    <div class="product-container">
+        <div class="product">
+            <img src="Home Trend_ How to Style Organic Modern Decor.jpeg" alt="Table 1"> 
+            <p class="cost">$499.99</p>
+        </div>
+        <div class="product">
+            <img src="https://s.alicdn.com/@sc04/kf/H7456ed33d1de436799960196802680afB.jpg_720x720q50.jpg" alt="Table 2"> 
+            <p class="cost">$299.99</p>
+        </div>
+        <div class="product">
+            <img src="Stunning Dining Room Ideas.jpeg" alt="Table 3"> 
+            <p class="cost">$699.99</p>
+        </div>
+    </div>
+</section>
+
+<section id="page3">
+    <h1 id="p1head">Shop By Category</h1>
+    <h2>Lighting</h2>
+    <div class="product-container">
+        <div class="product">
+            <img src="IKEA - KRYSSMAST Table lamp.jpeg" alt="Lighting 1"> 
+            <p class="cost">$89.99</p>
+        </div>
+        <div class="product">
+            <img src="John Lewis Angus Arched Floor Lamp.jpeg" alt="Lighting 2"> 
+            <p class="cost">$299.99</p>
+        </div>
+        <div class="product">
+            <img src="Living Room Lamp, Floor Lamp, Living Room Design Ideas, Stylish Standing Lamp, Room Aesthetics.jpeg" alt="Lighting 3"> 
+            <p class="cost">$149.99</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    // JavaScript for smooth scrolling
+    document.querySelectorAll('nav a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+
+</body>
+</html>
