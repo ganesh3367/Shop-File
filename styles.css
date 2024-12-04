@@ -275,4 +275,19 @@ footer {
     font-size: 14px;
     color: #0e0d0d;
   }
-  
+  .load-more {
+    display: inline-block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #d8997c; 
+    color: white; 
+    text-decoration: none; 
+    border-radius: 5px; 
+    font-size: 1.2em;
+    transition: background-color 0.3s, transform 0.3s; 
+}
+
+.load-more:hover {
+    background-color: #dcac85; 
+    transform: scale(1.05); 
+}
