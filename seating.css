@@ -37,4 +37,44 @@ section {
 
 
 
-  }
+  }.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 15px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05); 
+}
+
+.card-img-top {
+    width: 100%;
+    height: auto;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    color: #4e4a49; 
+}
+
+.card-text {
+    font-size: 1rem;
+    color: #B17457; 
+}
+
+
+@media (max-width: 768px) {
+    .product-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
