@@ -36,8 +36,7 @@ section {
 }
 
 
-
-  }.card {
+.card {
     border: 1px solid #ddd;
     border-radius: 5px;
     overflow: hidden;
@@ -78,3 +77,4 @@ section {
 
 html {
     scroll-behavior: smooth;
+  }
