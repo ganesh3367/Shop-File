@@ -7,4 +7,4 @@ Homepage with Video Background: A stunning landing page featuring a looping vide
 Responsive Design: Fully responsive layout compatible with desktops, tablets, and mobile devices.
 Category-Based Navigation: Separate sections for Seating, Tables, and Lighting.
 
-And We also added more items in load more session so explore the items
+And We also added more items in load more session
