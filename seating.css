@@ -2,30 +2,63 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
-    background-color: #f9f9f9; 
-    color: #333;
+    padding: 10px;
+    color: #d8bfa8;
+    
 }
 
-h1, h2 {
-    color: #3e3029; 
-    text-align: center;
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;; 
+    padding: 10px 10px; 
+    z-index: 1000; 
+    text-align: center; 
+    background-color: #fffbf5;
+}
+.gany-enterprise {
+    font-size: 1em; 
+    color: #ede8e7; 
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); 
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    letter-spacing: 1px; 
+    background: linear-gradient(90deg, #464342, #8d634c); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent;
+}
+
+.fixed-header h1 {
+    margin: 0; 
+    font-size: 2em; 
+    color: #0e0e0e;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
 }
 
 h1 {
-    margin-bottom: 20px; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-}
-
-h2 {
-    margin-top: 40px;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: #4e4a49;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #fffbf5;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
+h2 {
+    font-size: 2rem;
+    color: #3e3029;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    margin-top: 70px;
+    margin-bottom: 20px;
+    padding: 5px;
+    border-bottom: 2px solid #B17457;
+}
 
 section {
     padding: 50px 0;
+    background-color: #fffcf8;
 }
 
 
@@ -64,7 +97,7 @@ section {
 
 .card-text {
     font-size: 1rem;
-    color: #B17457; 
+    color: #454342; 
 }
 
 
@@ -78,3 +111,5 @@ section {
 html {
     scroll-behavior: smooth;
   }
+
+  
