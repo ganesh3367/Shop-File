@@ -1,6 +1,4 @@
-/* contact.css */
 
-/* General styles */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -11,14 +9,14 @@ body {
 
 h1 {
     text-align: center;
-    color: #B17457;
+    color: #444444;
 }
 
 h2 {
-    color: #B17457;
+    color: #424242;
 }
 
-/* Contact details styles */
+
 .contact-details {
     background-color: #ffffff;
     border: 1px solid #ddd;
@@ -27,7 +25,7 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* Contact form styles */
+
 .contact-form {
     background-color: #ffffff;
     border: 1px solid #ddd;
@@ -64,3 +62,4 @@ h2 {
 .contact-form button:hover {
     background-color: #d4a149;
 }
+body{background-color: #eae5e5;}
