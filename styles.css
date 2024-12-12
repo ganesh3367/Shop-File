@@ -47,12 +47,20 @@ section {
     font-size: 3.5em; 
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     background: rgba(0, 0, 0, 0.4); 
     padding: 20px 40px;
-    border-radius: 8px;
+    border-radius: px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    animation: fadeInSlideScale 1s ease forwards; 
+    transition: transform 0.3s ease; 
 }
+#page1 h1:hover {
+    transform: translate(-50%, -50%) scale(1.05); 
+    color: #eea382; 
+    cursor: pointer; 
+}
+
 
 .description-container {
     position: absolute; 
@@ -328,3 +336,4 @@ footer {
     #spage2 {
         margin-top: -150px; 
     }
+
