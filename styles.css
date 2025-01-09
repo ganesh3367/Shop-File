@@ -364,11 +364,13 @@ footer {
     margin: 20px auto;
     padding: 10px 20px; 
     color: rgb(21, 17, 17); 
-    font-family: cursive;
-    text-decoration: none; 
-    border-radius: 5px; 
+    text-decoration: none;
+    border: 1px dotted black; 
+    border-radius: 6px; 
     font-size: 1.2em;
-    transition: background-color 0.1s, transform 0.3s; 
+    transition: background-color 0.1s, transform 0.3s;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; 
+  
 }
 
 .load-more:hover {
