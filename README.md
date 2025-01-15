@@ -8,4 +8,4 @@ Responsive Design: Fully responsive layout compatible with desktops, tablets, an
 Category-Based Navigation: Separate sections for Seating, Tables, and Lighting.   
  
     
- 
+  
