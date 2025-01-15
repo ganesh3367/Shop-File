@@ -102,12 +102,26 @@ section {
 }
 
 
-#idk{ font-size: 20.5px;
-font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;}
+#animated-text {
+  font-size: 20.5px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  animation: fadeIn 2s; 
+  margin-top: 40px;
+}
+
+@keyframes fadeIn {
+  0% {
+      opacity: 0;
+  }
+  100% {
+      opacity: 1;
+  }
+}
 
 #metoo{font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 font-variant: normal;
-font-style:normal;}
+font-style:normal;
+font-size: 35px;}
 
 
 
@@ -362,19 +376,23 @@ footer {
   .load-more {
     display: inline-block;
     margin: 20px auto;
-    padding: 10px 20px; 
-    color: rgb(21, 17, 17); 
+    padding: 12px 30px; 
+    color: white; 
     text-decoration: none;
-    border: 1px dotted black; 
-    border-radius: 6px; 
+    border: none; 
+
     font-size: 1.2em;
-    transition: background-color 0.1s, transform 0.3s;
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; 
-  
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background: linear-gradient(90deg, #8d634c, #464342); 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .load-more:hover {
     transform: scale(1.05); 
+    background: linear-gradient(90deg, #464342, #8d634c); 
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
 }
 
 
@@ -415,11 +433,36 @@ footer {
   }
 }
 
-/* Add transition styles */
+
 .transition {
   transition: all 0.3s ease-in-out;
 }
 
 .transition:hover {
   transform: scale(1.1);
+}
+
+.nav-strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: rgb(246, 245, 239);
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.gany-enterprise {
+  font-size: 1.5em;
+  color: #ede8e7;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #464342, #8d634c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
