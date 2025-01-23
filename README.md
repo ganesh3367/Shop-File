@@ -9,3 +9,4 @@ Category-Based Navigation: Separate sections for Seating, Tables, and Lighting.
  
      
   
+ 
