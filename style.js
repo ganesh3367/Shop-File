@@ -190,3 +190,4 @@ document.querySelectorAll('nav a').forEach(anchor => {
       targetElement.scrollIntoView({ behavior: 'smooth' });
     });
   });
+ 
