@@ -59,7 +59,7 @@ section {
 
 #page1 h1:hover {
   transform: translate(-50%, -50%) scale(1.05);
-  color: #eea382;
+   color: #f9cfbe;
   cursor: pointer;
 }
 
