@@ -1,4 +1,4 @@
-/* General Styles */
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -17,7 +17,7 @@ section {
   min-height: 720px;
 }
 
-/* Page 1 Styles */
+
 #page1 {
   position: relative;
   height: 100vh;
@@ -82,7 +82,7 @@ section {
   line-height: 1.6;
 }
 
-/* Page 2 Styles */
+
 #page2 {
   background-color: #efefef;
   display: flex;
@@ -294,6 +294,8 @@ h2 {
 .product img {
   width: 100%;
   height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -307,7 +309,7 @@ h2 {
   text-align: center;
 }
 
-/* Footer Styles */
+
 footer {
   background-color: #7d716a;
   color: #0d0b0b;
@@ -454,6 +456,20 @@ footer {
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   letter-spacing: 1px;
   background: linear-gradient(90deg, #464342, #8d634c);
-  -webkit-background-clip: text;
+  -webkit-background-clip:text;
   -webkit-text-fill-color: transparent;
+}
+.video-heading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 3em;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
