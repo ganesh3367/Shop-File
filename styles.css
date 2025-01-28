@@ -59,7 +59,7 @@ section {
 
 #page1 h1:hover {
   transform: translate(-50%, -50%) scale(1.05);
-  color: #f9cfbe;
+  color: #fadace;
   cursor: pointer;
 }
 
@@ -182,7 +182,7 @@ nav a {
 
 nav a:hover {
   transform: scale(1.05);
-  color: #cba08d;
+  color: #f4f4f4;
   cursor: pointer;
 }
 
@@ -208,7 +208,7 @@ nav a.active {
   left: 0;
   width: 100%;
   height: 60px;
-  background: rgb(246, 245, 239);
+  background: #a3978d ;
   z-index: 999;
   display: flex;
   justify-content: space-between;
@@ -451,10 +451,10 @@ footer {
 .gany-enterprise {
   font-size: 1.5em;
   color: #ede8e7;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   letter-spacing: 1px;
-  background: linear-gradient(90deg, #464342, #8d634c);
+  background: linear-gradient(90deg, #d5d0cf, #fff0e8);
   -webkit-background-clip:text;
   -webkit-text-fill-color: transparent;
 }
@@ -471,4 +471,56 @@ footer {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   z-index: 1;
+}
+
+
+#session-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.session-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-container {
+  width: 40%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-container h2 {
+  font-size: 34px;
+  margin-bottom: 20px;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.text-container p {
+  font-size: 18px;
+  color: #666;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.image-container {
+  width: 50%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-image: url('image.jpg');
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
