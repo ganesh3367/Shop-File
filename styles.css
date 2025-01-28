@@ -59,7 +59,7 @@ section {
 
 #page1 h1:hover {
   transform: translate(-50%, -50%) scale(1.05);
-   color: #f9cfbe;
+  color: #f9cfbe;
   cursor: pointer;
 }
 
@@ -182,7 +182,7 @@ nav a {
 
 nav a:hover {
   transform: scale(1.05);
-  color: #805745;
+  color: #cba08d;
   cursor: pointer;
 }
 
@@ -283,23 +283,22 @@ h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 25px;
-  max-width: 350px;
+  margin: 20px;
+  max-width: 400px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
   overflow: hidden;
   background: transparent;
+  transition: transform 0.3s ease;
 }
 
 .product img {
   width: 100%;
   height: auto;
-  border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  
 }
 
-.product img:hover {
+.product :hover {
   transform: scale(1.1);
 }
 
