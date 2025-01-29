@@ -1,30 +1,32 @@
 gsap.registerPlugin(ScrollTrigger);
 
 gsap.from("#page2 .text-content", {
-    opacity: 0,
-    y: 100,
+    opacity: 0.5,
+    y: 50, // Decrease the y-axis offset to 50
     duration: 1.5,
+    scale: 0.95, // Decrease the scale effect to 0.95
     scrollTrigger: {
-        trigger: "#page2",
-        start: "top 80%",
-        end: "bottom 20%",
-        scrub: 1,
-        markers: false,
+      trigger: "#page2",
+      start: "top 80%",
+      end: "bottom 20%",
+      scrub: 1,
+      markers: false,
     },
-});
-
-gsap.from("#page2 .image-content", {
-    opacity: 0,
-    x: 100,
+  });
+  
+  gsap.from("#page2 .image-content", {
+    opacity: 0.5,
+    x: 50, // Decrease the x-axis offset to 50
     duration: 1.5,
+    scale: 0.95, // Decrease the scale effect to 0.95
     scrollTrigger: {
-        trigger: "#page2",
-        start: "top 80%",
-        end: "bottom 20%",
-        scrub: 1,
-        markers: false,
+      trigger: "#page2",
+      start: "top 80%",
+      end: "bottom 20%",
+      scrub: 1,
+      markers: false,
     },
-});
+  });
 
 gsap.to("#page2", {
     y: -100,
@@ -99,7 +101,7 @@ function animateProductContainers() {
     document.querySelectorAll('.product').forEach((product, index) => {
         // Animate the product container
         gsap.from(product, {
-            opacity: 0,
+            opacity: 0.5,
             x: 20, // Decrease the x-axis offset to 20
             duration: 0.8, // Decrease the animation duration to 0.8 seconds
             ease: "power2.out",
@@ -115,7 +117,7 @@ function animateProductContainers() {
 
         // Animate the image container
         gsap.from(product.querySelector('img'), {
-            opacity: 0,
+            opacity: 0.5,
             y: 10, // Decrease the y-axis offset to 10
             duration: 0.6, // Decrease the animation duration to 0.6 seconds
             ease: "power2.out",
@@ -131,7 +133,7 @@ function animateProductContainers() {
 
         // Animate the cost container
         gsap.from(product.querySelector('.cost'), {
-            opacity: 0,
+            opacity: 0.5,
             y: 5, // Decrease the y-axis offset to 5
             duration: 0.4, // Decrease the animation duration to 0.4 seconds
             ease: "power2.out",
@@ -152,7 +154,7 @@ animateProductContainers();
 
         // Animate the text container
         gsap.from(product.querySelector('.text-container'), {
-            opacity: 0,
+            opacity: 0.5,
             y: 50,
             duration: 1,
             ease: "power2.out",
@@ -168,7 +170,7 @@ animateProductContainers();
 
         // Animate the image container
         gsap.from(product.querySelector('.image-container'), {
-            opacity: 0,
+            opacity: 0.5,
             x: 50,
             duration: 1,
             ease: "power2.out",
@@ -190,4 +192,3 @@ document.querySelectorAll('nav a').forEach(anchor => {
       targetElement.scrollIntoView({ behavior: 'smooth' });
     });
   });
- 
