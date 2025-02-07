@@ -279,7 +279,7 @@ nav a:hover::after {
 }
 
 nav a:hover {
-  color: #570505;
+  color: #ebebeb;
   transform: scale(1.05);
 }
 
@@ -304,8 +304,8 @@ nav a.active {
   top: 0px;
   left: 0;
   width: 100%;
-  height: 80px;
-  background: #e5e0d4;
+  height: 100px;
+  background: rgb(146, 130, 123);
   z-index: 999;
   display: flex;
   justify-content: space-between;
