@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image: url("1942.jpg");
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-attachment: fixed; 
+    background-blend-mode: lighten;
+
+}
+
+
+
+#mainbox{
+    height: 550px;
+    width: 500px;
+
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 100px;
+    margin-left: 900px;
+
+}
+form {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    height: 90%;
+    padding: 20px;
+    border: 1px solid #522424;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: transparent;
+    backdrop-filter: blur(750px)
+}
+
+h2{
+    text-align: center;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 30px;
+}
+
+label {
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+input[type="text"], input[type="password"] {
+    width: 80%;
+    height: 40px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 18px;
+    box-sizing: border-box;
+
+}
+
+input[type="submit"] {
+    width: 80%;
+    height: 40px;
+    background-color: rgb(105, 84, 75);
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+input[type="submit"]:hover {
+    background-color: rgb(155, 109, 90);
+}
+
+p {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #464646;
+}
+
+a {
+    text-decoration: none;
+    color: #928787;
+}
+
+a:hover {
+    color: #3e8e41;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}

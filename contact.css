@@ -1,0 +1,136 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    color: #444444;
+}
+
+h2 {
+    color: #424242;
+}
+
+
+.contact-details {
+    background-color: #ffffff;
+    border: 1px solid #faf8f8;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+
+.contact-form {
+    background-color: #ffffff;
+    border: 1px solid #f9f9f9;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.contact-form button {
+    background-color: #dcac85;
+    color: rgb(26, 22, 22);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.contact-form button:hover {
+    background-color: #d4a149;
+}
+body{background-color: #d8d8d8;}
+
+footer {
+    background-color: #7d716a; 
+    color: #0d0b0b; 
+    padding: 30px 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .footer-column {
+    flex: 1 1 200px;
+    min-width: 150px;
+  }
+  
+  .footer-column h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+  
+  .footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-column ul li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-column ul li a {
+    text-decoration: none;
+    color: #151414;
+    transition: color 0.3s;
+  }
+  
+  .footer-column ul li a:hover {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .social-icons {
+    margin-top: 15px;
+  }
+  
+  .social-icons a {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #121111;
+    transition: color 0.3s;
+  }
+  
+  .social-icons a:hover {
+    color: #000;
+  }
+  
+ 
+  .footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+    color: #0e0d0d;
+  }

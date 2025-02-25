@@ -1,0 +1,109 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    color: #161616;
+}
+
+.about-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    color: #424242;
+}
+
+h2 {
+    color: #494747;
+    margin-top: 20px;
+}
+
+p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.about-details {
+    border-top: 2px solid #B17457;
+    padding-top: 20px;
+}
+footer {
+    background-color: #7d716a; 
+    color: #0d0b0b; 
+    padding: 30px 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .footer-column {
+    flex: 1 1 200px;
+    min-width: 150px;
+  }
+  
+  .footer-column h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+  
+  .footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-column ul li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-column ul li a {
+    text-decoration: none;
+    color: #151414;
+    transition: color 0.3s;
+  }
+  
+  .footer-column ul li a:hover {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .social-icons {
+    margin-top: 15px;
+  }
+  
+  .social-icons a {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #121111;
+    transition: color 0.3s;
+  }
+  
+  .social-icons a:hover {
+    color: #000;
+  }
+  
+ 
+  .footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+    color: #0e0d0d;
+  }

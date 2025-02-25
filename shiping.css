@@ -1,0 +1,99 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.fixed-header {
+    background-color: #a79182;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #a79182;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #a79182;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-around;
+    background-color: #f1f1f1;
+    padding: 20px 0;
+}
+
+.footer-column {
+    width: 20%;
+}
+
+.footer-column h4 {
+    margin-bottom: 10px;
+}
+
+.footer-column ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin: 5px 0;
+}
+
+.footer-column ul li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.footer-column ul li a:hover {
+    text-decoration: underline;
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px;
+}
