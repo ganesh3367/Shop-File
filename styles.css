@@ -1,4 +1,4 @@
-/* Global Styles */
+
 
 body {
   font-family: Arial, sans-serif;
@@ -206,7 +206,7 @@ align-items: center;
 }
 
 .cost {
-  margin-top: 10px;
+  margin-top: 30px;
   font-size: 1.2em;
   text-align: center;
 }
