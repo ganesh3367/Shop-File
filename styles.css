@@ -246,10 +246,10 @@ body {
   
   /* Navigation Styles */
   
-  nav {
+  .nav {
     position: fixed;
     top: 40px;
-    left: 950px;
+    left: 900px;
     z-index: 1000;
     font-size: 1.2em;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
@@ -257,7 +257,7 @@ body {
     display: flex;
   }
   
-  nav a {
+  .nav a {
     margin-left: 15px;
     color: rgb(33, 32, 32);
     text-decoration: none;
@@ -265,7 +265,7 @@ body {
     position: relative;
     gap: 20px;
   }
-  nav a::after {
+  .nav a::after {
     content: "";
     position: absolute;
     bottom: 0;
@@ -277,16 +277,16 @@ body {
     transition: transform 0.3s ease-in-out;
   }
   
-  nav a:hover::after {
+  .nav a:hover::after {
     transform: scaleX(1);
   }
   
-  nav a:hover {
+  .nav a:hover {
     color: #ebebeb;
     transform: scale(1.05);
   }
   
-  nav a.active {
+  .nav a.active {
     animation: pulse 1s ease infinite;
   }
   
@@ -468,7 +468,7 @@ body {
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   padding: 0 15px; 
   background: none; 
-  border: none; 
+  border: none; /* Remove any borders */
 }
 
 .user-profile::after {
@@ -509,3 +509,6 @@ body {
   margin: 0;
   font-size: 1em;
 }
+
+
+
