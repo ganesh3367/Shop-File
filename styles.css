@@ -249,7 +249,7 @@ body {
   .nav {
     position: fixed;
     top: 40px;
-    left: 800px;
+    left: 1000px;
     z-index: 1000;
     font-size: 1.2em;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
