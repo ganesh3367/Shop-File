@@ -70,8 +70,9 @@ export default function Navbar() {
         </nav>
 
         <div className="nav__actions">
-          <button className="icon-btn search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search (⌘K)">
-            <Search size={18} />
+          <button className="icon-btn search-trigger" onClick={() => setSearchOpen(true)}>
+            <Search size={18} aria-hidden />
+            <span className="sr-only">Search</span>
             <kbd>⌘K</kbd>
           </button>
           <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle dark mode">
@@ -92,7 +93,7 @@ export default function Navbar() {
             <Heart size={18} />
             {wishlist.length > 0 && <span className="badge-dot">{wishlist.length}</span>}
           </Link>
-          <Link to="/login" className="icon-btn hide-sm" aria-label="Account">
+          <Link to={user ? '/account' : '/login'} className="icon-btn hide-sm" aria-label="Account">
             {user ? <span className="avatar">{user.name[0].toUpperCase()}</span> : <User size={18} />}
           </Link>
           <button className="icon-btn" onClick={() => setCartOpen(true)} aria-label={`Open bag, ${count} items`}>
@@ -134,7 +135,11 @@ export default function Navbar() {
             transition={{ duration: 0.7, ease }}
           >
             <nav>
-              {[...LINKS, { to: '/wishlist', label: 'Wishlist' }, { to: '/login', label: user ? 'Account' : 'Log in' }].map((l, i) => (
+              {[
+                ...LINKS,
+                { to: '/wishlist', label: 'Wishlist' },
+                { to: user ? '/account' : '/login', label: user ? 'Account' : 'Log in' },
+              ].map((l, i) => (
                 <motion.div
                   key={l.to}
                   initial={{ y: 60, opacity: 0 }}

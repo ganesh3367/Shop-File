@@ -227,7 +227,7 @@
   grid-template-columns: 1.1fr 2fr;
   gap: 64px;
 }
-.footer__news h3 {
+.footer__news h2 {
   font-family: var(--font-display);
   font-weight: 300;
   font-size: clamp(30px, 3.5vw, 46px);
@@ -273,7 +273,7 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 32px;
 }
-.footer__cols h4 {
+.footer__cols h3 {
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;

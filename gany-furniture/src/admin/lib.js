@@ -1,5 +1,4 @@
 import { CheckCircle2, Clock, Loader, Truck, XCircle } from 'lucide-react';
-import { PRODUCTS } from '../data/products';
 
 export const STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -13,7 +12,7 @@ export const STATUS_META = {
 };
 
 export const DAY = 864e5;
-export const startOfDay = (d) => {
+const startOfDay = (d) => {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
@@ -76,13 +75,14 @@ export function customersFrom(orders) {
   return [...map.values()].sort((a, b) => b.spent - a.spent);
 }
 
+/** Units sold and revenue per product id (cancelled orders excluded). */
 export function productStats(orders) {
-  const stats = Object.fromEntries(PRODUCTS.map((p) => [p.id, { units: 0, revenue: 0 }]));
+  const stats = {};
   for (const o of orders.filter(isRevenue)) {
     for (const it of o.items) {
-      if (!stats[it.id]) continue;
-      stats[it.id].units += it.qty;
-      stats[it.id].revenue += it.price * it.qty;
+      const s = (stats[it.id] ??= { id: it.id, name: it.name, image: it.image, category: it.category, units: 0, revenue: 0 });
+      s.units += it.qty;
+      s.revenue += it.price * it.qty;
     }
   }
   return stats;

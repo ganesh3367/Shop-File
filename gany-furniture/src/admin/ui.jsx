@@ -1,10 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, RotateCcw } from 'lucide-react';
 import { formatPrice } from '../data/products';
 import { STATUS_META, compactINR, fmtDate } from './lib';
 
 export function StatusBadge({ status }) {
-  const { color, icon: Icon } = STATUS_META[status] ?? STATUS_META.Pending;
+  // Timeline entries can also be return events ("Return approved"), shown neutrally.
+  const { color, icon: Icon } = STATUS_META[status] ?? { color: 'var(--muted)', icon: RotateCcw };
   return (
     <span className="status" style={{ '--status': color }}>
       <Icon size={13} strokeWidth={2} />
@@ -37,10 +38,13 @@ export const pctChange = (now, before) => (before > 0 ? ((now - before) / before
 
 /** Round an axis max up to a clean number and return evenly spaced ticks. */
 function niceTicks(max, count = 4) {
-  if (max <= 0) return [0, 1000, 2000, 3000, 4000];
+  if (max <= 0) return [0, 1, 2, 3, 4];
   const raw = max / count;
   const mag = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+  const step = Math.max(
+    1,
+    [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw),
+  );
   // Stop at the first tick above the data so the tallest column fills most of the plot.
   return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step);
 }
@@ -50,7 +54,20 @@ function niceTicks(max, count = 4) {
  * One colour (the brand accent), no legend (the card title names the series),
  * hover tooltip with generous hit targets, and a table toggle for exact values.
  */
-export function RevenueChart({ data }) {
+export function RevenueChart({
+  data,
+  unit = 'day',
+  value = (d) => d.revenue,
+  format = formatPrice,
+  axis = compactINR,
+  detail = (d) => `${d.orders} ${d.orders === 1 ? 'order' : 'orders'}`,
+  label = 'Revenue',
+}) {
+  const dateLabel = (iso) => (unit === 'month' ? fmtDate(iso, { month: 'short' }) : fmtDate(iso));
+  const dateLong = (iso) =>
+    unit === 'month'
+      ? fmtDate(iso, { month: 'long', year: 'numeric' })
+      : fmtDate(iso, { weekday: 'short', day: 'numeric', month: 'short' });
   const wrap = useRef(null);
   const [width, setWidth] = useState(640);
   const [hover, setHover] = useState(null);
@@ -64,7 +81,8 @@ export function RevenueChart({ data }) {
 
   const height = 260;
   const pad = { top: 16, right: 8, bottom: 28, left: 52 };
-  const ticks = useMemo(() => niceTicks(Math.max(...data.map((d) => d.revenue))), [data]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const ticks = useMemo(() => niceTicks(Math.max(...data.map(value))), [data]);
   const yMax = ticks[ticks.length - 1];
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
@@ -82,14 +100,14 @@ export function RevenueChart({ data }) {
     return `M${x},${b} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${b} Z`;
   };
 
-  const total = data.reduce((s, d) => s + d.revenue, 0);
+  const total = data.reduce((s, d) => s + value(d), 0);
   const hovered = hover != null ? data[hover] : null;
 
   return (
     <div className="chart" ref={wrap}>
       <div className="chart__bar">
         <span className="muted small">
-          {formatPrice(total)} across {data.length} days
+          {format(total)} across {data.length} {unit === 'month' ? 'months' : 'days'}
         </span>
         <div className="segmented">
           <button className={!asTable ? 'is-active' : ''} onClick={() => setAsTable(false)}>
@@ -107,16 +125,16 @@ export function RevenueChart({ data }) {
             <thead>
               <tr>
                 <th>Date</th>
-                <th className="num">Orders</th>
-                <th className="num">Revenue</th>
+                <th className="num">{label}</th>
+                <th>Detail</th>
               </tr>
             </thead>
             <tbody>
               {[...data].reverse().map((d) => (
                 <tr key={d.date}>
-                  <td>{fmtDate(d.date, { weekday: 'short', day: 'numeric', month: 'short' })}</td>
-                  <td className="num">{d.orders}</td>
-                  <td className="num">{formatPrice(d.revenue)}</td>
+                  <td>{dateLong(d.date)}</td>
+                  <td className="num">{format(value(d))}</td>
+                  <td className="muted">{detail(d)}</td>
                 </tr>
               ))}
             </tbody>
@@ -124,12 +142,12 @@ export function RevenueChart({ data }) {
         </div>
       ) : (
         <div className="chart__plot" onPointerLeave={() => setHover(null)}>
-          <svg width={width} height={height} role="img" aria-label={`Daily revenue, total ${formatPrice(total)}`}>
+          <svg width={width} height={height} role="img" aria-label={`${label} by ${unit}, total ${format(total)}`}>
             {ticks.map((t) => (
               <g key={t}>
                 <line x1={pad.left} x2={width - pad.right} y1={y(t)} y2={y(t)} className={t === 0 ? 'chart__base' : 'chart__grid'} />
                 <text x={pad.left - 10} y={y(t)} dy="0.32em" textAnchor="end" className="chart__tick">
-                  {compactINR(t)}
+                  {axis(t)}
                 </text>
               </g>
             ))}
@@ -139,13 +157,13 @@ export function RevenueChart({ data }) {
                 <g key={d.date}>
                   {hover === i && <rect x={pad.left + band * i} y={pad.top} width={band} height={innerH} className="chart__hoverband" />}
                   <path
-                    d={colPath(cx - barW / 2, y(d.revenue), barW)}
+                    d={colPath(cx - barW / 2, y(value(d)), barW)}
                     className="chart__col"
                     opacity={hover == null || hover === i ? 1 : 0.45}
                   />
                   {i % labelEvery === 0 && (
                     <text x={cx} y={height - 8} textAnchor="middle" className="chart__tick">
-                      {fmtDate(d.date)}
+                      {dateLabel(d.date)}
                     </text>
                   )}
                   {/* Hit target is the whole column band, not just the mark. */}
@@ -158,7 +176,7 @@ export function RevenueChart({ data }) {
                     onPointerEnter={() => setHover(i)}
                     onFocus={() => setHover(i)}
                     tabIndex={0}
-                    aria-label={`${fmtDate(d.date)}: ${formatPrice(d.revenue)}, ${d.orders} orders`}
+                    aria-label={`${dateLong(d.date)}: ${format(value(d))}, ${detail(d)}`}
                   />
                 </g>
               );
@@ -169,14 +187,12 @@ export function RevenueChart({ data }) {
               className="chart__tip"
               style={{
                 left: Math.min(Math.max(pad.left + band * hover + band / 2, 90), width - 90),
-                top: Math.max(y(hovered.revenue) - 12, 8),
+                top: Math.max(y(value(hovered)) - 12, 8),
               }}
             >
-              <span className="muted small">{fmtDate(hovered.date, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-              <strong>{formatPrice(hovered.revenue)}</strong>
-              <span className="small">
-                {hovered.orders} {hovered.orders === 1 ? 'order' : 'orders'}
-              </span>
+              <span className="muted small">{dateLong(hovered.date)}</span>
+              <strong>{format(value(hovered))}</strong>
+              <span className="small">{detail(hovered)}</span>
             </div>
           )}
         </div>

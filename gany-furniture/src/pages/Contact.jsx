@@ -19,6 +19,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '', topic: 'General' });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
+  const [showMap, setShowMap] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
@@ -63,12 +64,21 @@ export default function Contact() {
             </Reveal>
           ))}
           <Reveal className="map" delay={0.2}>
-            <iframe
-              title="Gany's studio location"
-              src="https://www.google.com/maps?q=Pune,Maharashtra,India&output=embed"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            {/* The Google Maps embed is heavy, so it only loads when the visitor asks for it. */}
+            {showMap ? (
+              <iframe
+                title="Gany's studio location"
+                src="https://www.google.com/maps?q=Pune,Maharashtra,India&output=embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            ) : (
+              <button className="map__facade" onClick={() => setShowMap(true)}>
+                <MapPin size={28} strokeWidth={1.5} />
+                <strong>Pune, Maharashtra</strong>
+                <span className="btn btn--dark btn--sm">Show map</span>
+              </button>
+            )}
           </Reveal>
         </div>
 
@@ -106,7 +116,7 @@ export default function Contact() {
               </motion.div>
             ) : (
               <motion.form key="form" onSubmit={submit} className="contact__form" exit={{ opacity: 0, y: -20 }} noValidate>
-                <h3>Get in touch</h3>
+                <h2>Get in touch</h2>
                 <div className="chips">
                   {TOPICS.map((t) => (
                     <button

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { CATEGORIES, PRODUCTS, formatPrice, sized } from '../data/products';
+import { CATEGORIES, formatPrice, sized } from '../data/products';
 import { STATUSES, compactINR, customersFrom, dailySeries, fmtDate, isRevenue, productStats, rangeOrders } from './lib';
 import { useAdmin } from './data';
 import { BarList, Empty, RevenueChart, StatTile, StatusBadge, pctChange } from './ui';
@@ -11,7 +11,7 @@ const RANGES = [7, 14, 30];
 
 export default function Dashboard() {
   const { toast } = useStore();
-  const { orders, messages, subscribers, loadSample, removeSample } = useAdmin();
+  const { orders, messages, returns, reviews, products, lowStock, loadSample, removeSample } = useAdmin();
   const [busy, setBusy] = useState(false);
   const run = async (fn, done) => {
     setBusy(true);
@@ -47,8 +47,7 @@ export default function Dashboard() {
     }));
 
     const stats = productStats(cur);
-    const top = PRODUCTS.map((p) => ({ ...p, ...stats[p.id] }))
-      .filter((p) => p.units > 0)
+    const top = Object.values(stats)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
@@ -203,21 +202,56 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="panel">
-          <h3 className="panel__title">Inbox</h3>
-          <div className="inbox-stats">
-            <Link to="/admin/messages">
-              <strong>{unread}</strong>
-              <span className="muted small">Unread messages</span>
-            </Link>
-            <Link to="/admin/customers?tab=newsletter">
-              <strong>{subscribers.length}</strong>
-              <span className="muted small">Newsletter subscribers</span>
-            </Link>
-          </div>
-        </div>
+        <NeedsAttention
+          pending={orders.filter((o) => o.status === 'Pending').length}
+          unread={unread}
+          returns={returns.filter((r) => r.status === 'Requested').length}
+          reviews={reviews.filter((r) => r.status === 'Pending').length}
+          low={products.filter((p) => p.active && p.stock <= lowStock).sort((a, b) => a.stock - b.stock)}
+        />
       </section>
     </>
+  );
+}
+
+function NeedsAttention({ pending, unread, returns, reviews, low }) {
+  const items = [
+    { n: pending, label: 'Orders to process', to: '/admin/orders' },
+    { n: returns, label: 'Return requests', to: '/admin/returns' },
+    { n: reviews, label: 'Reviews to approve', to: '/admin/reviews' },
+    { n: unread, label: 'Unread messages', to: '/admin/messages' },
+  ];
+  return (
+    <div className="panel">
+      <h3 className="panel__title">Needs attention</h3>
+      <div className="inbox-stats inbox-stats--4">
+        {items.map((i) => (
+          <Link key={i.label} to={i.to} className={i.n > 0 ? 'has-items' : ''}>
+            <strong>{i.n}</strong>
+            <span className="muted small">{i.label}</span>
+          </Link>
+        ))}
+      </div>
+      <h3 className="panel__title panel__title--spaced">Low stock</h3>
+      {low.length === 0 ? (
+        <p className="muted small">Everything is well stocked.</p>
+      ) : (
+        <ul className="mini-list">
+          {low.slice(0, 5).map((p) => (
+            <li key={p.id}>
+              <img src={sized(p.image, 120)} alt="" />
+              <span>
+                <strong>{p.name}</strong>
+                <small className="muted">{p.type}</small>
+              </span>
+              <Link to={`/admin/products?edit=${p.id}`} className={`stock-chip ${p.stock === 0 ? 'is-out' : ''}`}>
+                {p.stock === 0 ? 'Sold out' : `${p.stock} left`}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

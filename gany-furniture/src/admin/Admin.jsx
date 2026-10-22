@@ -1,7 +1,26 @@
 import { useCallback, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUpRight, Boxes, LayoutDashboard, LogOut, Mail, Menu, Moon, Package, Sun, Users, X } from 'lucide-react';
+import {
+  Activity as ActivityIcon,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  BellOff,
+  Boxes,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  Moon,
+  Package,
+  RotateCcw,
+  Star,
+  Sun,
+  Ticket,
+  Users,
+  X,
+} from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { api, adminToken } from '../lib/api';
 import { AdminDataProvider, useAdmin } from './data';
@@ -10,6 +29,12 @@ import Orders from './Orders';
 import Products from './Products';
 import Customers from './Customers';
 import Messages from './Messages';
+import Analytics from './Analytics';
+import Returns from './Returns';
+import Reviews from './Reviews';
+import Coupons from './Coupons';
+import ActivityLog from './Activity';
+import CustomerProfile from './CustomerProfile';
 import '../styles/admin.css';
 
 export default function Admin() {
@@ -91,20 +116,48 @@ function AdminLogin({ onSuccess }) {
 
 function AdminLayout({ onLogout }) {
   const { theme, toggleTheme } = useStore();
-  const { orders, messages, loading, error, reload } = useAdmin();
+  const { orders, messages, returns, reviews, products, lowStock, loading, error, reload, live, sound, setSound } = useAdmin();
   const [navOpen, setNavOpen] = useState(false);
   const location = useLocation();
   // Animate between sections, not between an order list and one of its orders.
   const section = location.pathname.split('/')[2] ?? 'dashboard';
   const pending = orders.filter((o) => o.status === 'Pending').length;
   const unread = messages.filter((m) => !m.read).length;
+  const openReturns = returns.filter((r) => r.status === 'Requested').length;
+  const pendingReviews = reviews.filter((r) => r.status === 'Pending').length;
+  const low = products.filter((p) => p.active && p.stock <= lowStock).length;
 
-  const links = [
-    { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { to: '/admin/orders', label: 'Orders', icon: Package, badge: pending },
-    { to: '/admin/products', label: 'Products', icon: Boxes },
-    { to: '/admin/customers', label: 'Customers', icon: Users },
-    { to: '/admin/messages', label: 'Messages', icon: Mail, badge: unread },
+  const groups = [
+    [
+      'Overview',
+      [
+        { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+        { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+      ],
+    ],
+    [
+      'Sales',
+      [
+        { to: '/admin/orders', label: 'Orders', icon: Package, badge: pending },
+        { to: '/admin/returns', label: 'Returns', icon: RotateCcw, badge: openReturns },
+        { to: '/admin/coupons', label: 'Discount codes', icon: Ticket },
+      ],
+    ],
+    [
+      'Catalogue',
+      [
+        { to: '/admin/products', label: 'Products', icon: Boxes, badge: low, warn: true },
+        { to: '/admin/reviews', label: 'Reviews', icon: Star, badge: pendingReviews },
+      ],
+    ],
+    [
+      'People',
+      [
+        { to: '/admin/customers', label: 'Customers', icon: Users },
+        { to: '/admin/messages', label: 'Messages', icon: Mail, badge: unread },
+        { to: '/admin/activity', label: 'Activity log', icon: ActivityIcon },
+      ],
+    ],
   ];
 
   return (
@@ -119,13 +172,22 @@ function AdminLayout({ onLogout }) {
             <X size={18} />
           </button>
         </div>
-        <nav className="admin__nav">
-          {links.map(({ to, label, icon: Icon, end, badge }) => (
-            <NavLink key={to} to={to} end={end} className="admin__link" onClick={() => setNavOpen(false)}>
-              <Icon size={18} strokeWidth={1.6} />
-              <span>{label}</span>
-              {badge > 0 && <em>{badge}</em>}
-            </NavLink>
+        <nav className="admin__nav" data-lenis-prevent>
+          {groups.map(([title, links]) => (
+            <div key={title} className="admin__group">
+              <span className="admin__group-title">{title}</span>
+              {links.map(({ to, label, icon: Icon, end, badge, warn }) => (
+                <NavLink key={to} to={to} end={end} className="admin__link" onClick={() => setNavOpen(false)}>
+                  <Icon size={18} strokeWidth={1.6} />
+                  <span>{label}</span>
+                  {badge > 0 && (
+                    <em className={warn ? 'is-warn' : ''} title={warn ? 'Low on stock' : undefined}>
+                      {badge}
+                    </em>
+                  )}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="admin__side-foot">
@@ -150,7 +212,20 @@ function AdminLayout({ onLogout }) {
           <button className="icon-btn admin__burger" onClick={() => setNavOpen(true)} aria-label="Open menu">
             <Menu size={20} />
           </button>
-          <span className="muted small">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <span className={`live-pill ${live ? 'is-on' : ''}`} title={live ? 'Receiving live updates' : 'Reconnecting…'}>
+            <span /> {live ? 'Live' : 'Offline'}
+          </span>
+          <button
+            className="icon-btn"
+            onClick={() => setSound(!sound)}
+            aria-label={sound ? 'Mute new-order sound' : 'Play a sound for new orders'}
+            title="New-order sound"
+          >
+            {sound ? <Bell size={17} /> : <BellOff size={17} />}
+          </button>
+          <span className="muted small hide-sm">
+            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </span>
           <span className="avatar">A</span>
         </header>
         <AnimatePresence mode="wait">
@@ -179,9 +254,15 @@ function AdminLayout({ onLogout }) {
                 <Route path="/admin" element={<Dashboard />} />
                 <Route path="/admin/orders" element={<Orders />} />
                 <Route path="/admin/orders/:id" element={<Orders />} />
+                <Route path="/admin/analytics" element={<Analytics />} />
+                <Route path="/admin/returns" element={<Returns />} />
+                <Route path="/admin/coupons" element={<Coupons />} />
                 <Route path="/admin/products" element={<Products />} />
+                <Route path="/admin/reviews" element={<Reviews />} />
                 <Route path="/admin/customers" element={<Customers />} />
+                <Route path="/admin/customers/:email" element={<CustomerProfile />} />
                 <Route path="/admin/messages" element={<Messages />} />
+                <Route path="/admin/activity" element={<ActivityLog />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Routes>
             )}

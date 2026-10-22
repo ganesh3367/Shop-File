@@ -9,7 +9,7 @@ export function useLenis() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     // lerp-based smoothing gives a softer, more natural glide than a fixed duration.
-    const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.9, touchMultiplier: 1.4, smoothWheel: true });
+    const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.9, touchMultiplier: 1.4, smoothWheel: true, anchors: { offset: -100 } });
     ref.current = lenis;
     window.__lenis = lenis;
 

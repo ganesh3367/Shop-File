@@ -94,7 +94,11 @@ export default function QuickView({ product, open, onClose }) {
                 </div>
               </div>
 
-              <button className={`btn btn--accent btn--block ${added ? 'is-done' : ''}`} onClick={add} disabled={added}>
+              <button
+                className={`btn btn--accent btn--block ${added ? 'is-done' : ''}`}
+                onClick={add}
+                disabled={added || product.stock <= 0}
+              >
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.span
                     key={String(added)}
@@ -108,7 +112,7 @@ export default function QuickView({ product, open, onClose }) {
                         <Check size={18} /> Added
                       </>
                     ) : (
-                      <>Add to bag · {formatPrice(product.price)}</>
+                      <>{product.stock <= 0 ? 'Sold out' : `Add to bag · ${formatPrice(product.price)}`}</>
                     )}
                   </motion.span>
                 </AnimatePresence>

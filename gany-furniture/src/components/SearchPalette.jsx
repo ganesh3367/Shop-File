@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, CornerDownLeft, FileText, Search } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { PRODUCTS, formatPrice, sized } from '../data/products';
+import { formatPrice, sized } from '../data/products';
+import { useCatalog } from '../context/CatalogContext';
 import { useScrollLock } from '../hooks/useLenis';
 
 const PAGES = [
@@ -32,6 +33,7 @@ function score(text, q) {
 
 export default function SearchPalette() {
   const { searchOpen, setSearchOpen } = useStore();
+  const { products: PRODUCTS } = useCatalog();
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
   const inputRef = useRef(null);
@@ -55,7 +57,7 @@ export default function SearchPalette() {
       .slice(0, 3)
       .map((pg) => ({ kind: 'page', pg }));
     return [...products, ...pages];
-  }, [q]);
+  }, [q, PRODUCTS]);
 
   useEffect(() => setActive(0), [q]);
   useEffect(() => {

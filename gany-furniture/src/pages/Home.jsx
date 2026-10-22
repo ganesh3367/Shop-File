@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useMotionTemplate, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown, ArrowRight, ArrowUpRight, Leaf, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react';
-import { CATEGORIES, PRODUCTS, formatPrice, getProduct, sized } from '../data/products';
+import { CATEGORIES, formatPrice, sized } from '../data/products';
+import { useCatalog } from '../context/CatalogContext';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import { Counter, ImageReveal, Magnetic, Page, Reveal, SplitText, ease } from '../components/motion';
@@ -98,6 +99,7 @@ function Hero({ ready }) {
 
 /* ---------- Intro + counters ---------- */
 function Intro() {
+  const { products: PRODUCTS } = useCatalog();
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
@@ -160,6 +162,7 @@ function Intro() {
 
 /* ---------- Category accordion: hovered panel expands ---------- */
 function Categories() {
+  const { products: PRODUCTS } = useCatalog();
   const [active, setActive] = useState(0);
   return (
     <section className="section container">
@@ -219,6 +222,7 @@ function Categories() {
 
 /* ---------- Pinned horizontal scroll ---------- */
 function HorizontalShowcase() {
+  const { products: PRODUCTS } = useCatalog();
   const target = useRef(null);
   const track = useRef(null);
   const [distance, setDistance] = useState(0);
@@ -263,7 +267,7 @@ function HorizontalShowcase() {
               </div>
               <div className="hcard__meta">
                 <span className="muted">{String(i + 1).padStart(2, '0')}</span>
-                <h4>{p.name}</h4>
+                <h3>{p.name}</h3>
                 <span>{formatPrice(p.price)}</span>
               </div>
             </Link>
@@ -309,10 +313,13 @@ const ROOMS = [
 ];
 
 function ShopTheRoom() {
+  const { getProduct } = useCatalog();
   const [room, setRoom] = useState(0);
   const [open, setOpen] = useState(null);
   const { addToCart, toast } = useStore();
-  const r = ROOMS[room];
+  const base = ROOMS[room];
+  // Hotspots for products that were hidden or deleted in the admin simply disappear.
+  const r = { ...base, spots: base.spots.filter((s) => getProduct(s.id)) };
   const roomProducts = r.spots.map((s) => getProduct(s.id));
   const total = roomProducts.reduce((s, p) => s + p.price, 0);
 
@@ -485,6 +492,7 @@ function Story() {
 
 /* ---------- Tabbed bestseller grid with layout animation ---------- */
 function Bestsellers() {
+  const { products: PRODUCTS } = useCatalog();
   const [tab, setTab] = useState('seating');
   const items = PRODUCTS.filter((p) => p.category === tab).slice(0, 4);
   return (
@@ -527,7 +535,7 @@ function Promise() {
         {items.map(({ icon: Icon, t, d }, i) => (
           <Reveal key={t} delay={i * 0.08} className="promise__item">
             <Icon size={26} strokeWidth={1.4} />
-            <h4>{t}</h4>
+            <h3>{t}</h3>
             <p>{d}</p>
           </Reveal>
         ))}
