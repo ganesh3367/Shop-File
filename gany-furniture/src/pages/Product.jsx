@@ -1,8 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AnimatePresence, motion, useMotionValue, useScroll, useTransform } from 'framer-motion';
-import { Check, ChevronDown, Heart, MapPin, Minus, Plus, RotateCcw, Share2, ShieldCheck, Star, Truck } from 'lucide-react';
-import { PRODUCTS, formatPrice, getProduct, sized } from '../data/products';
+import {
+  Box,
+  Check,
+  ChevronDown,
+  Heart,
+  Image as ImageIcon,
+  MapPin,
+  Minus,
+  Plus,
+  RotateCcw,
+  Share2,
+  ShieldCheck,
+  Star,
+  Truck,
+} from 'lucide-react';
+import { formatPrice, sized } from '../data/products';
+import { useCatalog } from '../context/CatalogContext';
+import { api } from '../lib/api';
+import { ModelViewer3D, Reviews, Together } from '../components/ProductExtras';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import { Page, Reveal, ease } from '../components/motion';
@@ -10,6 +27,7 @@ import NotFound from './NotFound';
 
 export default function Product() {
   const { id } = useParams();
+  const { getProduct } = useCatalog();
   const product = getProduct(id);
   if (!product) return <NotFound />;
   // Keyed so all local state resets when navigating between products.
@@ -18,6 +36,31 @@ export default function Product() {
 
 function ProductView({ product }) {
   const { addToCart, toggleWishlist, isWished, toast } = useStore();
+  const { products: PRODUCTS } = useCatalog();
+  const [extras, setExtras] = useState({ reviews: [], together: [] });
+  const [view, setView] = useState('photo');
+  const soldOut = product.stock <= 0;
+  const maxQty = Math.max(1, Math.min(10, product.stock));
+
+  // Reviews and "frequently bought together" come from the product detail endpoint.
+  const loadExtras = () =>
+    api(`/products/${product.id}`)
+      .then(({ reviews, together }) => {
+        setExtras({ reviews, together });
+        // Arriving from "Write a review" on an order: jump to the reviews once they're on the page.
+        if (window.location.hash === '#reviews') {
+          setTimeout(() => {
+            const el = document.getElementById('reviews');
+            if (window.__lenis && el) window.__lenis.scrollTo(el, { offset: -100 });
+            else el?.scrollIntoView({ behavior: 'smooth' });
+          }, 900);
+        }
+      })
+      .catch(() => {});
+  useEffect(() => {
+    loadExtras();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
   const [color, setColor] = useState(product.colors[0].name);
   const [material, setMaterial] = useState(product.materials[0]);
   const [qty, setQty] = useState(1);
@@ -38,6 +81,7 @@ function ProductView({ product }) {
     .slice(0, 4);
 
   const add = () => {
+    if (soldOut) return;
     addToCart(product, { color, material, qty });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -105,7 +149,25 @@ function ProductView({ product }) {
     <Page className="pdp" label={product.name}>
       <div className="container pdp__grid">
         <div className="pdp__gallery">
-          <ZoomImage src={product.image} alt={product.name} />
+          {product.modelUrl && (
+            <div className="segmented pdp__view">
+              <button className={view === 'photo' ? 'is-active' : ''} onClick={() => setView('photo')}>
+                <span>
+                  <ImageIcon size={14} /> Photo
+                </span>
+              </button>
+              <button className={view === '3d' ? 'is-active' : ''} onClick={() => setView('3d')}>
+                <span>
+                  <Box size={14} /> View in 3D / AR
+                </span>
+              </button>
+            </div>
+          )}
+          {view === '3d' && product.modelUrl ? (
+            <ModelViewer3D src={product.modelUrl} alt={`3D model of ${product.name}`} credit={product.modelCredit} />
+          ) : (
+            <ZoomImage src={product.image} alt={product.name} />
+          )}
           <div className="pdp__thumbs">
             {[product.image, ...related.slice(0, 3).map((r) => r.image)].map((src, i) => (
               <motion.div
@@ -139,9 +201,9 @@ function ProductView({ product }) {
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star key={s} size={15} fill={s <= Math.round(product.rating) ? 'currentColor' : 'none'} />
               ))}
-              <span>
+              <a href="#reviews" className="pdp__reviews-link">
                 {product.rating} · {product.reviews} reviews
-              </span>
+              </a>
             </div>,
             <p key="price" className="pdp__price">
               {formatPrice(product.price)}
@@ -154,6 +216,14 @@ function ProductView({ product }) {
             </p>,
             <p key="emi" className="muted small">
               or {formatPrice(Math.ceil(product.price / 6))}/month with 0% EMI for 6 months
+            </p>,
+            <p key="stock" className={`stock-note ${soldOut ? 'is-out' : product.stock <= 3 ? 'is-low' : ''}`}>
+              <span className="stock-note__dot" />
+              {soldOut
+                ? 'Sold out — check back soon'
+                : product.stock <= 3
+                  ? `Only ${product.stock} left in stock`
+                  : 'In stock, ready to ship'}
             </p>,
             <div key="color" className="option">
               <span className="option__label">
@@ -192,11 +262,16 @@ function ProductView({ product }) {
                     {qty}
                   </motion.span>
                 </AnimatePresence>
-                <button onClick={() => setQty((q) => Math.min(10, q + 1))} aria-label="Increase quantity">
+                <button onClick={() => setQty((q) => Math.min(maxQty, q + 1))} aria-label="Increase quantity" disabled={qty >= maxQty}>
                   <Plus size={16} />
                 </button>
               </div>
-              <AddButton added={added} onClick={add} label={`Add to bag · ${formatPrice(product.price * qty)}`} />
+              <AddButton
+                added={added}
+                onClick={add}
+                disabled={soldOut}
+                label={soldOut ? 'Sold out' : `Add to bag · ${formatPrice(product.price * qty)}`}
+              />
               <motion.button
                 className={`icon-btn icon-btn--outline ${wished ? 'is-on' : ''}`}
                 whileTap={{ scale: 0.85 }}
@@ -279,6 +354,10 @@ function ProductView({ product }) {
         </motion.div>
       </div>
 
+      <Together key={extras.together.join()} product={product} ids={extras.together} />
+
+      <Reviews product={product} reviews={extras.reviews} onSubmitted={loadExtras} />
+
       <section className="section container">
         <Reveal className="section-head">
           <div>
@@ -312,7 +391,13 @@ function ProductView({ product }) {
                 {color} · {material}
               </span>
             </div>
-            <AddButton added={added} onClick={add} label={formatPrice(product.price * qty)} compact />
+            <AddButton
+              added={added}
+              onClick={add}
+              disabled={soldOut}
+              label={soldOut ? 'Sold out' : formatPrice(product.price * qty)}
+              compact
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -320,13 +405,13 @@ function ProductView({ product }) {
   );
 }
 
-function AddButton({ added, onClick, label, compact }) {
+function AddButton({ added, onClick, label, compact, disabled }) {
   return (
     <motion.button
       className={`btn btn--accent ${compact ? '' : 'btn--grow'} ${added ? 'is-done' : ''}`}
       onClick={onClick}
       whileTap={{ scale: 0.96 }}
-      disabled={added}
+      disabled={added || disabled}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

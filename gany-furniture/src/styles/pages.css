@@ -291,6 +291,9 @@
 .hscroll__head .display {
   max-width: 14ch;
 }
+.hscroll .muted {
+  color: #a8a096;
+}
 .hscroll__head .eyebrow {
   color: color-mix(in srgb, var(--bg) 60%, transparent);
 }
@@ -335,7 +338,8 @@
   gap: 12px;
   align-items: baseline;
 }
-.hcard__meta h4 {
+.hcard__meta h3 {
+  font-size: 16px;
   font-weight: 500;
 }
 .hcard--more {
@@ -575,8 +579,9 @@
   color: var(--accent);
   margin-bottom: 8px;
 }
-.promise__item h4 {
+.promise__item h3 {
   font-size: 17px;
+  font-weight: 700;
 }
 .promise__item p {
   color: var(--muted);
@@ -725,7 +730,10 @@
 .cat-tabs sup {
   font-size: 10px;
   margin-left: 4px;
-  opacity: 0.6;
+  color: var(--muted);
+}
+.cat-tabs button.is-active sup {
+  color: inherit;
 }
 .cat-tabs__bg {
   position: absolute;
@@ -1582,6 +1590,12 @@
 .timeline li {
   position: relative;
 }
+.timeline li.timeline__progress {
+  position: absolute;
+}
+.timeline li.timeline__progress::before {
+  display: none;
+}
 .timeline li::before {
   content: '';
   position: absolute;
@@ -1599,7 +1613,7 @@
   color: var(--accent);
   font-size: 20px;
 }
-.timeline h4 {
+.timeline h3 {
   font-size: 22px;
   font-weight: 600;
   margin: 4px 0 6px;
@@ -1744,6 +1758,20 @@
   height: 280px;
   border: 1px solid var(--line);
 }
+.map__facade {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  background: radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 45%),
+    repeating-linear-gradient(0deg, transparent 0 38px, var(--line) 38px 39px),
+    repeating-linear-gradient(90deg, transparent 0 38px, var(--line) 38px 39px), var(--surface);
+}
+.map__facade svg {
+  color: var(--accent);
+}
 .map iframe {
   width: 100%;
   height: 100%;
@@ -1763,7 +1791,7 @@
   display: grid;
   gap: 16px;
 }
-.contact__form h3,
+.contact__form h2,
 .sent h3 {
   font-family: var(--font-display);
   font-weight: 400;
@@ -1863,7 +1891,7 @@
   gap: 12px;
   justify-items: center;
 }
-.help__cta h3 {
+.help__cta h2 {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 34px;
@@ -2113,68 +2141,4 @@
 .notfound__code span {
   color: var(--accent);
   font-style: italic;
-}
-
-/* Account: order history */
-.my-orders {
-  width: min(720px, 100%);
-  text-align: left;
-  margin: 12px 0;
-}
-.my-orders h3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 26px;
-  margin-bottom: 14px;
-}
-.my-orders ul {
-  display: grid;
-  gap: 10px;
-}
-.my-orders li {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-.my-orders__imgs {
-  display: flex;
-}
-.my-orders__imgs img {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid var(--surface);
-  background: var(--surface-2);
-}
-.my-orders__imgs img + img {
-  margin-left: -14px;
-}
-.my-orders__info {
-  display: grid;
-}
-.my-orders__status {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--surface-2);
-}
-.my-orders__status.is-delivered {
-  color: #0a7f0a;
-}
-.my-orders__status.is-cancelled {
-  color: #c03030;
-}
-@media (max-width: 560px) {
-  .my-orders li {
-    grid-template-columns: 1fr auto;
-  }
-  .my-orders__imgs {
-    display: none;
-  }
 }

@@ -1,6 +1,6 @@
 # Gany's Furniture: full-stack furniture store
 
-A full-stack rebuild of the original static HTML/Bootstrap site: a React storefront with an animated, interactive UI, a Node.js + Express REST API, a SQLite database, customer accounts and an admin panel.
+A full-stack rebuild of the original static HTML/Bootstrap site: a React storefront with an animated, interactive UI, 3D/AR product previews, customer accounts, a Node.js + Express REST API, a SQLite database and a full admin panel.
 
 ## Run it
 
@@ -9,13 +9,13 @@ npm install
 npm run dev        # website on http://localhost:5173, API on http://localhost:4000
 ```
 
-`npm run dev` starts both the React app (Vite) and the API (Express) together. The database file is created automatically at `data/gany.db`.
+`npm run dev` starts both the React app (Vite) and the API (Express). On first start the database (`data/gany.db`) is created and filled with the 66-piece catalogue, plus a starter discount code `WELCOME10` (10% off orders over ₹10,000).
 
-On first start a development admin account is created:
-
-| Admin panel                   | Email            | Password     |
-| ----------------------------- | ---------------- | ------------ |
-| http://localhost:5173/admin   | `admin@ganys.in` | `gany@admin` |
+| What               | Where                              | Login                                    |
+| ------------------ | ---------------------------------- | ---------------------------------------- |
+| Store              | http://localhost:5173              | sign up on the Log in page               |
+| Admin panel        | http://localhost:5173/admin        | `admin@ganys.in` / `gany@admin` (dev)    |
+| Interactive API docs | http://localhost:4000/api/docs   | click **Authorize** and paste a token    |
 
 Production:
 
@@ -25,115 +25,139 @@ npm run build          # builds the React app into dist/
 npm start              # one Express server serves the website and the API
 ```
 
-Deploy to any Node host with a persistent disk (Render, Railway, a VPS). Set the environment variables from `.env.example`, use `npm install && npm run build` as the build command and `npm start` as the start command. Static-only hosts (Netlify, Vercel static) can't run the API.
+Deploy to any Node host with a persistent disk (Render, Railway, a VPS); `data/` and `uploads/` must persist. Static-only hosts (Netlify, Vercel static) can't run the API.
+
+No email service is used. Password reset links are shown on screen in development, and in production an admin creates one from the customer's profile and sends it to them.
 
 ## Architecture
 
 ```
-Browser ──▶ React app (Vite)  ──fetch /api──▶  Express API  ──▶  SQLite (data/gany.db)
-            storefront + /admin                 auth · orders · admin
+Browser ──▶ React app (Vite) ──fetch /api──▶ Express API ──▶ SQLite (data/gany.db)
+            storefront + /admin               auth · catalogue · orders · admin
+                     ▲                                    │
+                     └──── Server-Sent Events (live admin alerts) ◀──┘
 ```
 
-- **Frontend:** React 18, React Router 6, Framer Motion 12, Lenis smooth scroll, lucide-react icons, plain CSS with light and dark themes.
-- **Backend:** Express 4, better-sqlite3, bcryptjs (password hashing), jsonwebtoken (JWT auth), zod (input validation), helmet (security headers and CSP), express-rate-limit.
-- **One catalogue:** `src/data/products.js` is imported by both the React app and the server. The server prices every order from it, so prices can't be tampered with from the browser.
-
-### Database tables
-
-| Table          | Holds                                                                    |
-| -------------- | ------------------------------------------------------------------------ |
-| `users`        | customers and admins; bcrypt password hashes; `role` = customer / admin  |
-| `orders`       | customer and shipping details, totals, status, link to the user (if any) |
-| `order_items`  | line items with the price at the time of purchase                        |
-| `order_events` | status history (Pending → Processing → Shipped → Delivered / Cancelled)  |
-| `messages`     | contact form submissions, read/unread                                    |
-| `subscribers`  | newsletter emails (unique, case-insensitive)                             |
-
-### API
-
-| Method | Endpoint                         | Access   | Purpose                                         |
-| ------ | -------------------------------- | -------- | ----------------------------------------------- |
-| POST   | `/api/auth/signup`               | public   | create a customer account → `{ token, user }`   |
-| POST   | `/api/auth/login`                | public   | log in (customers and admins) → `{ token, user }` |
-| GET    | `/api/auth/me`                   | customer | current user                                    |
-| POST   | `/api/orders`                    | public   | place an order (priced on the server)           |
-| GET    | `/api/orders/mine`               | customer | the logged-in customer's orders                 |
-| POST   | `/api/messages`                  | public   | contact form                                    |
-| POST   | `/api/subscribers`               | public   | newsletter sign-up                              |
-| GET    | `/api/admin/orders`              | admin    | all orders with items and history               |
-| PATCH  | `/api/admin/orders/:id/status`   | admin    | change status (adds a history event)            |
-| POST   | `/api/admin/sample`              | admin    | load 46 sample orders (flagged `demo`)          |
-| DELETE | `/api/admin/sample`              | admin    | remove the sample orders                        |
-| GET    | `/api/admin/messages`            | admin    | contact inbox                                   |
-| PATCH  | `/api/admin/messages/:id`        | admin    | mark read / unread                              |
-| DELETE | `/api/admin/messages/:id`        | admin    | delete a message                                |
-| GET    | `/api/admin/subscribers`         | admin    | newsletter list                                 |
-| GET    | `/api/admin/users`               | admin    | registered accounts with order totals           |
-
-Authenticated requests send `Authorization: Bearer <token>`. Errors come back as `{ "error": "message", "field"?: "path" }`.
+- **Frontend:** React 18, React Router 6, Framer Motion 12, Lenis smooth scroll, Google `<model-viewer>` (3D/AR, lazy-loaded), lucide-react, plain CSS with light and dark themes.
+- **Backend:** Express 4, better-sqlite3, bcryptjs, jsonwebtoken (JWT), zod (validation), helmet (security headers and CSP), express-rate-limit, multer (uploads), swagger-ui-express (API docs).
+- **Database:** 15 tables. See the **[ER diagram and design notes](docs/DATABASE.md)**.
+- **API:** 55 endpoints, all documented at `/api/docs` (OpenAPI 3, in [`server/openapi.js`](server/openapi.js)).
 
 ### Security
 
-- Passwords are hashed with bcrypt; login returns the same message for an unknown email and a wrong password.
-- JWTs expire after 7 days. Admin routes check the `admin` role from the database on every request.
+- Passwords are hashed with bcrypt; login gives the same message for an unknown email and a wrong password.
+- JWT auth (7 days). Admin routes re-check the `admin` role in the database on every request.
 - Every request body is validated with zod. All SQL is parameterised.
-- Rate limits on login/signup, contact, newsletter and orders.
-- Helmet sets security headers, including a Content Security Policy that only allows the font, image and map hosts the site uses.
+- **Prices, discounts, GST and stock are computed on the server.** The browser only sends product ids, variants and quantities.
+- Stock is reserved in the same transaction as the order, so the last item can't be sold twice.
+- Password-reset tokens are stored hashed, single-use, and expire after 30 minutes.
+- Uploads: images (≤ 4 MB) and `.glb` models (≤ 25 MB) only, saved under random names.
+- Rate limits on login, password reset, reviews, orders, coupons, contact and newsletter. Helmet CSP allows only the hosts the site uses.
+
+## Quality
+
+Lighthouse (desktop, production build):
+
+| Page    | Performance | Accessibility | Best practices | SEO |
+| ------- | ----------- | ------------- | -------------- | --- |
+| Home    | 91          | 100           | 100            | 100 |
+| Shop    | 92          | 100           | 100            | 100 |
+| Product | 91          | 100           | 100            | 100 |
+| About   | 94          | 100           | 100            | 100 |
+| Contact | 95          | 100           | 100            | 100 |
+| Help    | 97          | 100           | 100            | 100 |
+| Login   | 93          | 100           | 100            | 100 |
+
+Text colours are chosen to meet WCAG AA contrast (4.5:1). Headings follow a correct outline, every control has an accessible name, and motion respects `prefers-reduced-motion`. The 3D viewer (~950 KB) and the admin panel load only when they're used.
 
 ## Features
 
-**Experience**
+### Storefront
 
-- Intro preloader (once per session) and curtain-wipe page transitions
-- Subtle custom cursor: a small dot that tracks the pointer exactly and softens over clickable things (off on touch screens and for reduced motion)
-- Smooth inertial scrolling (Lenis) and a scroll-progress bar
-- Light theme by default, with a dark theme the visitor can switch to
-- Respects `prefers-reduced-motion`
-
-**Home page:** hero video that shrinks into a card on scroll, split-text reveals, count-up stats, category accordion, pinned horizontal showcase, **shop the room** hotspots, editorial story, tabbed bestsellers, draggable reviews.
-
-**Shopping**
-
-- Shop with category tabs, type chips, live search, sort, price slider and "on sale"; filters live in the URL
-- Product cards with 3D tilt, quick add, wishlist and Quick View
-- Product page with hover zoom, colour and material options, PIN-code delivery estimate, related products and a sticky add-to-bag bar
+- Animated UI: intro preloader, page transitions, smooth scrolling, scroll effects, subtle custom cursor, light/dark theme
+- Shop with category tabs, filters, live search and sort (filters stay in the URL); ⌘K search palette
+- Product page:
+  - live stock ("Only 2 left", "Sold out")
+  - **3D view and "View in your room" AR** (on supported phones)
+  - hover zoom and colour/material options
+  - **reviews with star breakdown, photos and "Verified buyer" badges**
+  - **"Frequently bought together"**, worked out from real order history
 - Cart drawer with a free-delivery progress bar
-- 3-step checkout with validation; the order is saved to the database and priced by the server
-- Customer accounts (sign up / log in) with an order history showing live status
-- ⌘K / Ctrl+K search palette
+- Checkout:
+  - **discount codes**
+  - **saved addresses**
+  - server-side pricing with GST on the discounted amount
+- **Customer account**:
+  - order history and **order tracking** (status steps, history and notes from the team)
+  - **printable GST invoice (PDF)**
+  - **return requests** (within 30 days of delivery)
+  - saved addresses and a wishlist synced to the account across devices
+- **Forgot / reset password**
 
-**Admin panel** (`/admin`)
+### Admin panel (`/admin`)
 
-- Dashboard: revenue, orders, average order and customers vs the previous period; daily revenue chart (hover tooltip + table view); sales by category; orders by status; top products; recent orders; inbox counts
-- Orders: search, status filter, sort, CSV export, and a side panel to update status, with items, totals, customer details and a timeline
-- Products: sortable catalogue with units sold and revenue
-- Customers (from orders), registered accounts and newsletter subscribers, all exportable to CSV
-- Messages: contact inbox with read/unread, delete and reply by email
-- One-click sample data (flagged, removable) for demos
-
-**Content pages:** About, Careers, Contact (with map), Help centre (searchable FAQ), Return policy, animated 404.
+- **Dashboard:**
+  - KPIs vs the previous period and a daily revenue chart
+  - sales by category and order status
+  - top products and recent orders
+  - **Needs attention** (orders, returns, reviews, messages) and **low-stock alerts**
+- **Analytics:**
+  - revenue by month and new vs returning customers
+  - repeat-customer and return rates
+  - category, city, payment and shipping mix
+  - a month-by-month table
+- **Orders:**
+  - search, filters and CSV export
+  - status updates with a note to the customer (cancelling restocks)
+  - timeline, **invoice and packing slip**
+- **Returns & refunds:** approve, reject, or refund (refunds restock).
+- **Discount codes:**
+  - percentage or fixed amount
+  - minimum spend, usage limit and expiry
+  - usage and revenue per code
+- **Products:**
+  - add, edit and hide products
+  - **image and 3D-model uploads**
+  - **inline stock editing** with live, hidden, low-stock and sold-out filters
+  - units sold and revenue per product
+- **Reviews:** approve or reject before they go live.
+- **Customers:**
+  - **customer profile** with full order history, lifetime spend, returns, addresses, reviews and wishlist
+  - password-reset link generator
+  - registered accounts and newsletter list, exportable to CSV
+- **Messages:** contact inbox.
+- **Activity log:** who changed what, and when.
+- **Live alerts:** new orders, returns, reviews and messages appear instantly with a toast and an optional chime, using Server-Sent Events.
+- One-click sample data (flagged, removable) for demos.
 
 ## Project structure
 
 ```
 server/
-  index.js              Express app: security, rate limits, routes, serves dist/ in production
-  db.js                 SQLite schema, admin bootstrap, order helpers
-  auth.js               JWT sign/verify, requireAuth / requireAdmin middleware
-  validate.js           zod schemas for every request body
-  pricing.js            server-side order pricing, shipping and GST
-  sample.js             sample order generator
-  routes/               auth.js · store.js (orders, messages, newsletter) · admin.js
+  index.js        Express app: security, rate limits, routes, docs, uploads; serves dist/ in production
+  db.js           schema + migrations, catalogue seed, order/stock helpers, activity log
+  auth.js         JWT sign/verify, requireAuth / requireAdmin
+  validate.js     zod schemas for every request body
+  pricing.js      server-side pricing, coupons, shipping and GST
+  events.js       in-process event bus for live admin alerts
+  uploads.js      multer config for images and 3D models
+  openapi.js      OpenAPI 3 spec served at /api/docs
+  sample.js       sample order generator
+  routes/         auth · catalog · store · account · admin
 src/
-  data/products.js      catalogue shared by the app and the server
-  lib/api.js            fetch wrapper (token, errors)
-  context/StoreContext.jsx  cart, wishlist, auth, theme, toasts
-  admin/                admin panel: Admin, Dashboard, Orders, Products, Customers, Messages,
-                        data.jsx (API state), ui.jsx (chart, tiles, badges), lib.js
-  components/ pages/ hooks/ styles/
+  data/           seed catalogue + category defaults, business details for invoices
+  context/        CatalogContext (live catalogue), StoreContext (cart, auth, wishlist, theme, toasts)
+  lib/api.js      fetch wrapper
+  pages/          storefront pages, Account (account, tracking, password reset), PrintDoc (invoice/slip)
+  components/     UI incl. ProductExtras (3D viewer, reviews, bought together)
+  admin/          Admin shell, Dashboard, Analytics, Orders, Returns, Coupons, Products, Reviews,
+                  Customers, CustomerProfile, Messages, Activity, data.jsx (API state + live events)
+docs/DATABASE.md  ER diagram and design decisions
 ```
 
-## Notes
+## Credits & notes
 
-- Payment is simulated: no money is taken. Razorpay test mode is the natural next step.
+- 3D models are Khronos glTF sample assets by Eric Chadwick: “Glam Velvet Sofa” (© Wayfair LLC, CC BY 4.0), “Sheen Chair” (© Wayfair LLC, CC0) and “Chair Damask Purplegold” (© Wayfair, CC BY 4.0). They are shown as representative models. Upload your own `.glb` files per product in the admin panel.
 - Product photos load from the Audo Copenhagen CDN, as on the original site. Replace them with your own photography before any commercial use.
+- Payment is simulated: no money is taken.
+- Fill in your GSTIN in [`src/data/business.js`](src/data/business.js) to print it on invoices.

@@ -21,10 +21,12 @@ import Contact from './pages/Contact';
 import Help from './pages/Help';
 import Returns from './pages/Returns';
 import Login from './pages/Login';
+import Account, { ForgotPassword, OrderTracking, ResetPassword } from './pages/Account';
 import NotFound from './pages/NotFound';
 
 // The admin panel is its own bundle so shoppers never download it.
 const Admin = lazy(() => import('./admin/Admin'));
+const PrintDoc = lazy(() => import('./pages/PrintDoc'));
 
 export default function App() {
   const location = useLocation();
@@ -55,6 +57,17 @@ export default function App() {
     }
     setLoading(false);
   };
+
+  // Invoices and packing slips render on their own, without the site chrome.
+  if (location.pathname.startsWith('/print/')) {
+    return (
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/print/:kind/:id" element={<PrintDoc />} />
+        </Routes>
+      </Suspense>
+    );
+  }
 
   if (location.pathname.startsWith('/admin')) {
     return (
@@ -93,6 +106,10 @@ export default function App() {
           <Route path="/help" element={<Help />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/account/orders/:id" element={<OrderTracking />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>

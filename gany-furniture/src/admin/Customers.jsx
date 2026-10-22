@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Download, Search } from 'lucide-react';
 import { formatPrice } from '../data/products';
 import { customersFrom, downloadCSV, fmtDate } from './lib';
@@ -164,7 +164,9 @@ function Person({ name, email }) {
     <span className="product-cell">
       <span className="avatar">{name[0]}</span>
       <span className="cell-stack">
-        <strong>{name}</strong>
+        <Link to={`/admin/customers/${encodeURIComponent(email)}`} className="table__link">
+          {name}
+        </Link>
         <a href={`mailto:${email}`} className="muted small">
           {email}
         </a>

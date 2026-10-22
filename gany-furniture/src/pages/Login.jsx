@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, EyeOff, LogOut } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { api } from '../lib/api';
-import { formatPrice, sized } from '../data/products';
 import { Page, ease } from '../components/motion';
 
 export default function Login() {
-  const { user, token, login, signup, logout, toast, wishlist, count } = useStore();
+  const { user, login, signup, toast } = useStore();
+  const from = useLocation().state?.from;
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [show, setShow] = useState(false);
@@ -35,7 +34,7 @@ export default function Login() {
     try {
       const u = mode === 'signup' ? await signup(form) : await login({ email: form.email, password: form.password });
       toast(`Welcome${mode === 'signup' ? '' : ' back'}, ${u.name.split(' ')[0]}!`);
-      navigate(u.role === 'admin' ? '/admin' : '/shop');
+      navigate(from ?? (u.role === 'admin' ? '/admin' : '/account'), { replace: true });
     } catch (err) {
       setError(err.message);
       setShake((s) => s + 1);
@@ -44,44 +43,8 @@ export default function Login() {
     }
   };
 
-  if (user) {
-    return (
-      <Page className="auth" label="Account">
-        <div className="container account">
-          <motion.span
-            className="avatar avatar--xl"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.4 }}
-          >
-            {user.name[0].toUpperCase()}
-          </motion.span>
-          <h1 className="display">Hello, {user.name}.</h1>
-          <p className="muted">{user.email}</p>
-          <MyOrders token={token} />
-          <div className="account__stats">
-            <Link to="/wishlist" className="info-card">
-              <strong>{wishlist.length}</strong>
-              <span className="muted small">Saved pieces</span>
-            </Link>
-            <Link to="/checkout" className="info-card">
-              <strong>{count}</strong>
-              <span className="muted small">Items in bag</span>
-            </Link>
-          </div>
-          <button
-            className="btn btn--ghost"
-            onClick={() => {
-              logout();
-              toast('Signed out. See you soon!');
-            }}
-          >
-            <LogOut size={16} /> Sign out
-          </button>
-        </div>
-      </Page>
-    );
-  }
+  // Already signed in: go where they were heading, or to their account.
+  if (user) return <Navigate to={from ?? (user.role === 'admin' ? '/admin' : '/account')} replace />;
 
   return (
     <Page className="auth" label={mode === 'login' ? 'Log in' : 'Sign up'}>
@@ -200,61 +163,21 @@ export default function Login() {
                 {busy ? <span className="spinner" /> : mode === 'login' ? 'Log in' : 'Create account'}
               </button>
               <p className="muted small center">
-                {mode === 'login'
-                  ? 'New here? Create an account to track your orders.'
-                  : 'Your password is stored securely (hashed), never in plain text.'}
+                {mode === 'login' ? (
+                  <>
+                    <Link to="/forgot-password" className="link-btn">
+                      Forgot password?
+                    </Link>{' '}
+                    · New here? Create an account to track orders.
+                  </>
+                ) : (
+                  'Your password is stored securely (hashed), never in plain text.'
+                )}
               </p>
             </form>
           </motion.div>
         </div>
       </div>
     </Page>
-  );
-}
-
-/** The signed-in customer's order history, straight from the API. */
-function MyOrders({ token }) {
-  const [orders, setOrders] = useState(null);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    api('/orders/mine', { token })
-      .then((d) => setOrders(d.orders))
-      .catch((err) => setError(err.message));
-  }, [token]);
-
-  if (error) return <p className="muted">{error}</p>;
-  if (!orders) return <span className="spinner" />;
-  if (orders.length === 0)
-    return (
-      <p className="muted">
-        No orders yet. <Link to="/shop">Start shopping →</Link>
-      </p>
-    );
-
-  return (
-    <div className="my-orders">
-      <h3>Your orders</h3>
-      <ul>
-        {orders.map((o) => (
-          <li key={o.id}>
-            <div className="my-orders__imgs">
-              {o.items.slice(0, 3).map((it, i) => (
-                <img key={i} src={sized(it.image, 120)} alt="" />
-              ))}
-            </div>
-            <span className="my-orders__info">
-              <strong>{o.id}</strong>
-              <small className="muted">
-                {new Date(o.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {o.items.length}{' '}
-                {o.items.length === 1 ? 'item' : 'items'}
-              </small>
-            </span>
-            <span className={`my-orders__status is-${o.status.toLowerCase()}`}>{o.status}</span>
-            <strong>{formatPrice(o.total)}</strong>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
