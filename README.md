@@ -1,11 +1,8 @@
 # Gany's Furniture
 
-Furniture e-commerce site for Gany's Furniture, Pune.
+Full-stack furniture e-commerce store for Gany's Furniture, Pune: a React storefront, a Node.js + Express + SQLite API, customer accounts and an admin panel.
 
-| Folder | What it is |
-| --- | --- |
-| [`gany-furniture/`](gany-furniture/) | **Current version.** Full-stack React + Node.js/Express + SQLite store with customer accounts, checkout and an admin panel. See its [README](gany-furniture/README.md). |
-| repository root (`*.html`, `*.css`) | The original static HTML/CSS/Bootstrap site, kept for reference. |
+The app lives in [`gany-furniture/`](gany-furniture/). See its [README](gany-furniture/README.md) for features, architecture and the API.
 
 ## Quick start
 
@@ -14,3 +11,5 @@ cd gany-furniture
 npm install
 npm run dev   # http://localhost:5173  (admin: /admin)
 ```
+
+The original static HTML/CSS version of this site is in the git history (before the React rebuild).

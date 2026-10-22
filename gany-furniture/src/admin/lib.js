@@ -13,7 +13,7 @@ export const STATUS_META = {
 };
 
 export const DAY = 864e5;
-export const startOfDay = (d) => {
+const startOfDay = (d) => {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;

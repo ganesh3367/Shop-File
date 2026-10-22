@@ -2,7 +2,7 @@
 // so totals can't be tampered with from the browser.
 import { FREE_SHIPPING_AT, getProduct } from '../src/data/products.js';
 
-export const SHIPPING_METHODS = {
+const SHIPPING_METHODS = {
   ground: { name: 'Ground', price: 0 },
   air: { name: 'Air', price: 1499 },
   express: { name: 'Express', price: 2999 },
@@ -10,7 +10,7 @@ export const SHIPPING_METHODS = {
 
 export const PAYMENT_METHODS = { upi: 'UPI', card: 'Card', cod: 'Pay on delivery' };
 
-export const GST_RATE = 0.18;
+const GST_RATE = 0.18;
 
 export class PricingError extends Error {}
 
