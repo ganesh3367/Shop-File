@@ -1,0 +1,564 @@
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+:root {
+  --bg: #f3efe8;
+  --surface: #fbf9f5;
+  --surface-2: #e9e3d9;
+  --ink: #1c1a17;
+  --ink-soft: #3b3731;
+  --muted: #6e675e;
+  --line: rgba(28, 26, 23, 0.12);
+  --accent: #b5562f;
+  --accent-ink: #fff;
+  --olive: #4b5240;
+  --shadow: 0 30px 60px -30px rgba(40, 30, 20, 0.35);
+  --shadow-sm: 0 8px 24px -12px rgba(40, 30, 20, 0.25);
+
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+
+  --radius: 20px;
+  --radius-sm: 12px;
+  --gutter: clamp(16px, 4vw, 56px);
+  --nav-h: 76px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #12110f;
+  --surface: #1b1a17;
+  --surface-2: #26241f;
+  --ink: #ede8df;
+  --ink-soft: #cfc8bc;
+  --muted: #9c948a;
+  --line: rgba(237, 232, 223, 0.12);
+  --accent: #d9774c;
+  --accent-ink: #12110f;
+  --olive: #9aa585;
+  --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Reset & base
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition:
+    background-color 0.5s var(--ease),
+    color 0.5s var(--ease);
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+img {
+  object-fit: cover;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+ul,
+ol {
+  list-style: none;
+}
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+mark {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+kbd {
+  font-family: var(--font-body);
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* ==========================================================================
+   Typography & layout utilities
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section {
+  padding-block: clamp(80px, 12vw, 160px);
+}
+.page {
+  min-height: 100vh;
+}
+
+.mega {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(56px, 11vw, 170px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+.display {
+  font-family: var(--font-display);
+  font-weight: 350;
+  font-size: clamp(34px, 5vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+.lead {
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.narrow {
+  max-width: 52ch;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.eyebrow a:hover {
+  color: var(--accent);
+}
+.eyebrow--light {
+  color: rgba(255, 255, 255, 0.8);
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 13px;
+}
+.center {
+  text-align: center;
+}
+
+/* Split-text reveal */
+.split {
+  display: block;
+}
+.split__mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.split__word {
+  display: inline-block;
+  transform-origin: left bottom;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   Buttons & links
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color 0.4s var(--ease),
+    background-color 0.4s var(--ease),
+    border-color 0.4s var(--ease),
+    transform 0.3s var(--ease);
+}
+/* Liquid fill sweeps up from the bottom on hover */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease);
+  z-index: -1;
+}
+.btn:hover::before {
+  transform: translateY(0);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.7;
+}
+.btn--dark {
+  background: var(--ink);
+  color: var(--bg);
+}
+.btn--dark::before {
+  background: var(--accent);
+}
+.btn--dark:hover {
+  color: var(--accent-ink);
+}
+.btn--accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.btn--accent::before {
+  background: var(--ink);
+}
+.btn--accent:hover {
+  color: var(--bg);
+}
+.btn--accent.is-done {
+  background: var(--olive);
+  color: #fff;
+}
+.btn--light {
+  background: #fff;
+  color: #1c1a17;
+}
+.btn--light::before {
+  background: var(--accent);
+}
+.btn--light:hover {
+  color: #fff;
+}
+.btn--ghost {
+  border: 1px solid var(--line);
+}
+.btn--ghost::before {
+  background: var(--ink);
+}
+.btn--ghost:hover {
+  color: var(--bg);
+}
+.btn--ghost-light {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+.btn--ghost-light::before {
+  background: #fff;
+}
+.btn--ghost-light:hover {
+  color: #1c1a17;
+}
+.btn--block {
+  width: 100%;
+}
+.btn--grow {
+  flex: 1;
+}
+.btn__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 4px;
+}
+.text-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform-origin: right;
+  transition: transform 0.5s var(--ease);
+}
+.text-link:hover::after {
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: underline-back 0.5s 0.45s var(--ease) forwards;
+}
+@keyframes underline-back {
+  to {
+    transform: scaleX(1);
+  }
+}
+.text-link svg {
+  transition: transform 0.4s var(--ease);
+}
+.text-link:hover svg {
+  transform: translateX(4px);
+}
+
+.link-btn {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Text that rolls up to a duplicate on hover. The mask stays put; only the text inside moves. */
+.link-roll__mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.4;
+}
+.link-roll__text {
+  display: block;
+  position: relative;
+  transition: transform 0.45s var(--ease);
+}
+.link-roll__text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  color: var(--accent);
+}
+.link-roll:hover .link-roll__text,
+.link-roll:focus-visible .link-roll__text {
+  transform: translateY(-100%);
+}
+
+.icon-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  transition: background-color 0.3s;
+}
+.icon-btn:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+/* No ring around round icon buttons: keyboard focus gets a soft fill instead. */
+.icon-btn:focus,
+.icon-btn:focus-visible {
+  outline: none;
+}
+.icon-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.icon-btn--outline {
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.icon-btn--outline.is-on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.pill,
+.pill-link {
+  display: inline-flex;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   Global chrome: curtain, preloader, cursor, progress
+   ========================================================================== */
+.curtain {
+  position: fixed;
+  inset: 0;
+  background: var(--ink);
+  z-index: 90;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+.curtain__label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(32px, 6vw, 80px);
+  color: var(--bg);
+  text-transform: capitalize;
+}
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #1c1a17;
+  color: #f3efe8;
+  display: grid;
+  place-items: center;
+}
+.preloader__word {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(56px, 12vw, 160px);
+  line-height: 1.1;
+}
+.preloader__word span {
+  display: block;
+}
+.preloader__bar {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 90px;
+  height: 1px;
+  background: rgba(243, 239, 232, 0.2);
+}
+.preloader__fill {
+  height: 100%;
+  background: #d9774c;
+  transform-origin: left;
+}
+.preloader__count {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 24px;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6vw, 72px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.preloader__meta {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 32px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Subtle custom cursor (see Cursor.jsx). Native cursor hidden only where the dot replaces it. */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button,
+html.has-cursor [role='button'],
+html.has-cursor select,
+html.has-cursor label {
+  cursor: none;
+}
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 300;
+  pointer-events: none;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background: var(--accent);
+}
+.cursor--hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  z-index: 120;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
