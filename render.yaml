@@ -1,0 +1,34 @@
+# Render Blueprint: one web service runs the website, the API and the SQLite database.
+# Deploy: Render dashboard → New → Blueprint → pick this repository.
+services:
+  - type: web
+    name: gany-furniture
+    runtime: node
+    rootDir: gany-furniture
+    # A persistent disk needs a paid instance; the free plan wipes files on every deploy.
+    plan: starter
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: gany-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      # Database and uploaded files live on the persistent disk so they survive deploys.
+      - key: DB_FILE
+        value: /var/data/gany.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      # Signs login tokens. Render generates a random value once and keeps it.
+      - key: JWT_SECRET
+        generateValue: true
+      # First admin account, created on first start. Render asks for these in the dashboard.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
