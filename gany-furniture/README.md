@@ -25,33 +25,44 @@ npm run build          # builds the React app into dist/
 npm start              # one Express server serves the website and the API
 ```
 
-### Deploying on Render
+### Deploying free: Render + Turso
 
-The repository includes a Render Blueprint ([`render.yaml`](../render.yaml)). It sets up one web service that serves the website and the API, plus a 1 GB persistent disk at `/var/data` for the SQLite database and uploads.
+The app runs on Render's **free** plan. Render's free plan has no persistent disk, so the database lives in **Turso**, a hosted SQLite-compatible database with a free tier. Uploaded images and 3D models are stored in the database as well, so nothing is lost when Render restarts or redeploys.
 
-1. In Render: **New → Blueprint**, then choose this GitHub repository.
-2. When asked, enter `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the first admin account. `JWT_SECRET` is generated automatically.
-3. Click **Apply**. Render builds with `npm ci && npm run build`, starts with `npm start`, and waits for `/api/health`.
-4. Open the `…onrender.com` address. The database is created and filled with the catalogue on first start. Sign in to `/admin` with the email and password from step 2.
+**1. Create the database (Turso)**
 
-The disk needs a paid instance (Starter). On the free plan, files are wiped on every deploy. Every push to `main` redeploys automatically, and data on the disk is kept.
+1. Sign up at [turso.tech](https://turso.tech) and create a database, in the region closest to your customers.
+2. Copy the database URL (`libsql://….turso.io`) and create an auth token.
 
-Other Node hosts with a persistent disk (Railway, Fly.io, a VPS) work the same way: set `DB_FILE` and `UPLOAD_DIR` to paths on the disk. Static-only hosts (Netlify, Vercel static) can't run the API.
+**2. Deploy the app (Render)**
+
+1. In Render: **New → Blueprint**, then choose this GitHub repository. Render reads [`render.yaml`](../render.yaml).
+2. When asked, enter:
+   - `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` from step 1
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the first admin account
+
+   `JWT_SECRET` is generated automatically.
+3. Click **Apply**. Render builds with `npm ci && npm run build`, starts with `npm start`, and checks `/api/health`, which also confirms the database connection.
+4. Open the `…onrender.com` address. On first start the tables are created, the catalogue is loaded and your admin account is set up. Sign in at `/admin`.
+
+Free-plan behaviour: the service sleeps after about 15 minutes without visitors, and the next visit takes up to a minute to wake it. Every push to `main` redeploys automatically, and the data in Turso is untouched.
+
+Without Turso settings the server uses a local SQLite file (`DB_FILE`, default `data/gany.db`). That's how development works, and it also works on any host with a persistent disk. Static-only hosts (Netlify, Vercel static) can't run the API.
 
 No email service is used. Password reset links are shown on screen in development, and in production an admin creates one from the customer's profile and sends it to them.
 
 ## Architecture
 
 ```
-Browser ──▶ React app (Vite) ──fetch /api──▶ Express API ──▶ SQLite (data/gany.db)
+Browser ──▶ React app (Vite) ──fetch /api──▶ Express API ──▶ Turso / SQLite
             storefront + /admin               auth · catalogue · orders · admin
                      ▲                                    │
                      └──── Server-Sent Events (live admin alerts) ◀──┘
 ```
 
 - **Frontend:** React 18, React Router 6, Framer Motion 12, Lenis smooth scroll, Google `<model-viewer>` (3D/AR, lazy-loaded), lucide-react, plain CSS with light and dark themes.
-- **Backend:** Express 4, better-sqlite3, bcryptjs, jsonwebtoken (JWT), zod (validation), helmet (security headers and CSP), express-rate-limit, multer (uploads), swagger-ui-express (API docs).
-- **Database:** 15 tables. See the **[ER diagram and design notes](docs/DATABASE.md)**.
+- **Backend:** Express 4, @libsql/client (Turso in production, a local SQLite file in development), bcryptjs, jsonwebtoken (JWT), zod (validation), helmet (security headers and CSP), express-rate-limit, multer (uploads, stored in the database), swagger-ui-express (API docs).
+- **Database:** 16 tables. See the **[ER diagram and design notes](docs/DATABASE.md)**.
 - **API:** 55 endpoints, all documented at `/api/docs` (OpenAPI 3, in [`server/openapi.js`](server/openapi.js)).
 
 ### Security
@@ -62,7 +73,7 @@ Browser ──▶ React app (Vite) ──fetch /api──▶ Express API ──�
 - **Prices, discounts, GST and stock are computed on the server.** The browser only sends product ids, variants and quantities.
 - Stock is reserved in the same transaction as the order, so the last item can't be sold twice.
 - Password-reset tokens are stored hashed, single-use, and expire after 30 minutes.
-- Uploads: images (≤ 4 MB) and `.glb` models (≤ 25 MB) only, saved under random names.
+- Uploads: images (≤ 4 MB) and `.glb` models (≤ 10 MB) only, saved under random names.
 - Rate limits on login, password reset, reviews, orders, coupons, contact and newsletter. Helmet CSP allows only the hosts the site uses.
 
 ## Quality

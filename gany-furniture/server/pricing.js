@@ -1,6 +1,6 @@
 // The server prices every order from the database, so totals can't be tampered with from the browser.
 import { FREE_SHIPPING_AT } from '../src/data/products.js';
-import { db, getProductRow } from './db.js';
+import { db } from './db.js';
 
 const SHIPPING_METHODS = {
   ground: { name: 'Ground', price: 0 },
@@ -21,8 +21,8 @@ export class PricingError extends Error {
 const couponError = (msg) => new PricingError(msg, 'coupon');
 
 /** Look up a coupon and work out its discount on a subtotal, or throw PricingError explaining why not. */
-export function applyCoupon(code, subtotal) {
-  const c = db.prepare('SELECT * FROM coupons WHERE code = ?').get(code.trim());
+export async function applyCoupon(code, subtotal) {
+  const c = await db.get('SELECT * FROM coupons WHERE code = ?', code.trim());
   if (!c || !c.active) throw couponError(`“${code}” isn't a valid code`);
   if (c.expires_at && new Date(c.expires_at) < new Date()) throw couponError(`“${c.code}” has expired`);
   if (c.max_uses != null && c.used >= c.max_uses) throw couponError(`“${c.code}” has been fully used`);
@@ -40,13 +40,18 @@ export function applyCoupon(code, subtotal) {
 /**
  * Price a basket: validates every product, variant and stock level, applies an optional coupon,
  * then adds shipping and GST (on the discounted amount). Throws PricingError with a user-facing message.
+ * `rows` lets callers pass pre-loaded product rows (used when generating many sample orders).
  */
-export function priceOrder(items, methodId, couponCode, { checkStock = true } = {}) {
+export async function priceOrder(items, methodId, couponCode, { checkStock = true, rows } = {}) {
   const method = SHIPPING_METHODS[methodId];
   if (!method) throw new PricingError('Unknown shipping method');
 
+  const ids = [...new Set(items.map((it) => it.id))];
+  const byId =
+    rows ?? new Map((await db.all(`SELECT * FROM products WHERE id IN (${ids.map(() => '?').join(',')})`, ...ids)).map((r) => [r.id, r]));
+
   const lines = items.map((it) => {
-    const row = getProductRow(it.id);
+    const row = byId.get(it.id);
     if (!row || !row.active) throw new PricingError(`“${it.id}” is no longer available`);
     const colors = JSON.parse(row.colors);
     const materials = JSON.parse(row.materials);
@@ -68,7 +73,7 @@ export function priceOrder(items, methodId, couponCode, { checkStock = true } = 
   });
 
   const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
-  const coupon = couponCode ? applyCoupon(couponCode, subtotal) : null;
+  const coupon = couponCode ? await applyCoupon(couponCode, subtotal) : null;
   const discount = coupon?.discount ?? 0;
   const taxable = subtotal - discount;
   const shipping = methodId === 'ground' && taxable >= FREE_SHIPPING_AT ? 0 : method.price;

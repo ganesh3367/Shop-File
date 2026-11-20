@@ -30,17 +30,17 @@ function rng(seed) {
 }
 
 /** ~46 realistic orders spread over the last six weeks, all flagged demo = 1. */
-export function makeSampleOrders(count = 46) {
-  // Draw from the live catalogue so sample data still works after products are edited or hidden.
-  const PRODUCTS = db
-    .prepare('SELECT id, colors, materials FROM products WHERE active = 1')
-    .all()
-    .map((p) => ({ id: p.id, colors: JSON.parse(p.colors), materials: JSON.parse(p.materials) }));
+export async function makeSampleOrders(count = 46) {
+  // Draw from the live catalogue (loaded once) so sample data still works after products are edited or hidden.
+  const rows = await db.all('SELECT * FROM products WHERE active = 1');
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const PRODUCTS = rows.map((p) => ({ id: p.id, colors: JSON.parse(p.colors), materials: JSON.parse(p.materials) }));
   const r = rng(2024);
   const pick = (arr) => arr[Math.floor(r() * arr.length)];
   const now = Date.now();
 
-  return Array.from({ length: count }, (_, i) => {
+  const orders = [];
+  for (let i = 0; i < count; i++) {
     const daysAgo = Math.floor(Math.pow(r(), 1.3) * 44);
     const created = new Date(now - daysAgo * DAY - Math.floor(r() * 10) * 36e5).toISOString();
     const [name, area] = pick(NAMES);
@@ -49,10 +49,10 @@ export function makeSampleOrders(count = 46) {
       return { id: p.id, qty: r() > 0.85 ? 2 : 1, color: pick(p.colors).name, material: pick(p.materials) };
     });
     const methodId = pick(['ground', 'ground', 'air', 'express']);
-    const priced = priceOrder(items, methodId, null, { checkStock: false });
+    const priced = await priceOrder(items, methodId, null, { checkStock: false, rows: byId });
     const status = r() < 0.06 ? 'Cancelled' : daysAgo > 9 ? 'Delivered' : daysAgo > 5 ? 'Shipped' : daysAgo > 2 ? 'Processing' : 'Pending';
 
-    return {
+    orders.push({
       id: `GNY-S${String(1000 + i)}`,
       user_id: null,
       status,
@@ -74,6 +74,7 @@ export function makeSampleOrders(count = 46) {
       demo: 1,
       created_at: created,
       items: priced.lines,
-    };
-  });
+    });
+  }
+  return orders;
 }
