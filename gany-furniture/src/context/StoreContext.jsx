@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { getProduct } from '../data/products';
+import { useCatalog } from './CatalogContext';
 import { api } from '../lib/api';
 
 const StoreContext = createContext(null);
@@ -59,6 +59,8 @@ function reducer(state, action) {
       };
     case 'auth/set':
       return { ...state, user: action.user, token: action.token };
+    case 'wishlist/set':
+      return { ...state, wishlist: action.ids };
     case 'theme/toggle':
       return { ...state, theme: state.theme === 'dark' ? 'light' : 'dark', themeChosen: true };
     default:
@@ -68,6 +70,7 @@ function reducer(state, action) {
 
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, initial);
+  const { getProduct } = useCatalog();
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
@@ -85,6 +88,16 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = state.theme;
   }, [state.theme]);
+
+  // When someone is signed in, the wishlist lives on their account: merge the browser's list in once per login.
+  useEffect(() => {
+    if (!state.token) return;
+    api('/account/wishlist/sync', { method: 'POST', token: state.token, body: { ids: state.wishlist } })
+      .then(({ ids }) => dispatch({ type: 'wishlist/set', ids }))
+      .catch(() => {});
+    // Only when the token changes (login / restored session).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.token]);
 
   // Confirm a saved login is still valid; sign out quietly if the token was rejected.
   useEffect(() => {
@@ -137,6 +150,11 @@ export function StoreProvider({ children }) {
       toggleWishlist: (product) => {
         const saved = state.wishlist.includes(product.id);
         dispatch({ type: 'wishlist/toggle', id: product.id });
+        if (state.token) {
+          api(`/account/wishlist/${product.id}`, { method: saved ? 'DELETE' : 'PUT', token: state.token })
+            .then(({ ids }) => dispatch({ type: 'wishlist/set', ids }))
+            .catch(() => dispatch({ type: 'wishlist/toggle', id: product.id }));
+        }
         toast(saved ? `Removed from wishlist` : `Saved ${product.name} to wishlist`, { image: product.image });
       },
       isWished: (id) => state.wishlist.includes(id),
@@ -152,9 +170,11 @@ export function StoreProvider({ children }) {
         return user;
       },
       logout: () => dispatch({ type: 'auth/set', user: null, token: null }),
+      // Used after a password reset, which signs the customer straight in.
+      setSession: ({ user, token }) => dispatch({ type: 'auth/set', user, token }),
       toggleTheme: () => dispatch({ type: 'theme/toggle' }),
     };
-  }, [state, cartOpen, searchOpen, toasts, toast, dismissToast]);
+  }, [state, cartOpen, searchOpen, toasts, toast, dismissToast, getProduct]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

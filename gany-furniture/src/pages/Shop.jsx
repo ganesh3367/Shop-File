@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LayoutGrid, Rows3, Search, SlidersHorizontal, X } from 'lucide-react';
-import { CATEGORIES, PRODUCTS, formatPrice } from '../data/products';
+import { CATEGORIES, formatPrice } from '../data/products';
+import { useCatalog } from '../context/CatalogContext';
 import ProductCard from '../components/ProductCard';
 import { Page, SplitText, ease } from '../components/motion';
 
@@ -14,13 +15,13 @@ const SORTS = {
   name: { label: 'A → Z', fn: (a, b) => a.name.localeCompare(b.name) },
 };
 
-const MAX_PRICE = Math.ceil(Math.max(...PRODUCTS.map((p) => p.price)) / 5000) * 5000;
-
 export default function Shop() {
   const { category = 'all' } = useParams();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const { products: PRODUCTS } = useCatalog();
+  const MAX_PRICE = Math.ceil(Math.max(5000, ...PRODUCTS.map((p) => p.price)) / 5000) * 5000;
 
   const q = params.get('q') ?? '';
   const sort = params.get('sort') ?? 'featured';
@@ -47,7 +48,7 @@ export default function Shop() {
       .filter((p) => !onSale || p.compareAt)
       .filter((p) => !query || `${p.name} ${p.type} ${p.category}`.toLowerCase().includes(query))
       .sort(SORTS[sort]?.fn ?? SORTS.featured.fn);
-  }, [inCategory, type, max, onSale, q, sort]);
+  }, [inCategory, type, max, onSale, q, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeFilters = [
     type !== 'All' && { label: type, clear: () => update({ type: null }) },
@@ -195,6 +196,7 @@ export default function Shop() {
           </div>
         </div>
 
+        <h2 className="sr-only">Products</h2>
         <motion.div className={`grid ${dense ? 'grid--dense' : ''}`} layout>
           <AnimatePresence mode="popLayout">
             {results.map((p, i) => (

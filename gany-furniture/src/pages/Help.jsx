@@ -166,7 +166,7 @@ export default function Help() {
         </motion.div>
 
         <Reveal className="help__cta">
-          <h3>Still need help?</h3>
+          <h2>Still need help?</h2>
           <p className="muted">Our team replies within one business day.</p>
           <Link to="/contact" className="btn btn--dark">
             Contact support

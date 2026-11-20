@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { PRODUCTS } from '../data/products';
+import { useCatalog } from '../context/CatalogContext';
 import ProductCard from '../components/ProductCard';
 import { Page, SplitText } from '../components/motion';
 
 export default function Wishlist() {
   const { wishlist, addToCart, toast } = useStore();
-  const items = wishlist.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
+  const { getProduct } = useCatalog();
+  const items = wishlist.map(getProduct).filter(Boolean);
 
   const addAll = () => {
     items.forEach((p) => addToCart(p, { silent: true }));
@@ -51,6 +52,7 @@ export default function Wishlist() {
           </motion.div>
         ) : (
           <motion.div className="grid" layout>
+            <h2 className="sr-only">Saved pieces</h2>
             <AnimatePresence mode="popLayout">
               {items.map((p, i) => (
                 <ProductCard key={p.id} product={p} index={i} />

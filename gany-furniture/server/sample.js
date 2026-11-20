@@ -1,4 +1,4 @@
-import { PRODUCTS } from '../src/data/products.js';
+import { db } from './db.js';
 import { priceOrder } from './pricing.js';
 
 const DAY = 864e5;
@@ -31,6 +31,11 @@ function rng(seed) {
 
 /** ~46 realistic orders spread over the last six weeks, all flagged demo = 1. */
 export function makeSampleOrders(count = 46) {
+  // Draw from the live catalogue so sample data still works after products are edited or hidden.
+  const PRODUCTS = db
+    .prepare('SELECT id, colors, materials FROM products WHERE active = 1')
+    .all()
+    .map((p) => ({ id: p.id, colors: JSON.parse(p.colors), materials: JSON.parse(p.materials) }));
   const r = rng(2024);
   const pick = (arr) => arr[Math.floor(r() * arr.length)];
   const now = Date.now();
@@ -44,7 +49,7 @@ export function makeSampleOrders(count = 46) {
       return { id: p.id, qty: r() > 0.85 ? 2 : 1, color: pick(p.colors).name, material: pick(p.materials) };
     });
     const methodId = pick(['ground', 'ground', 'air', 'express']);
-    const priced = priceOrder(items, methodId);
+    const priced = priceOrder(items, methodId, null, { checkStock: false });
     const status = r() < 0.06 ? 'Cancelled' : daysAgo > 9 ? 'Delivered' : daysAgo > 5 ? 'Shipped' : daysAgo > 2 ? 'Processing' : 'Pending';
 
     return {

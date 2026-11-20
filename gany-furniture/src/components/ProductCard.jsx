@@ -64,7 +64,11 @@ const ProductCard = forwardRef(function ProductCard({ product, index = 0, varian
           <motion.div className="card__glare" style={{ background: glare }} />
         </Link>
 
-        {product.badge && <span className={`tag tag--${product.badge.toLowerCase()}`}>{product.badge}</span>}
+        {product.stock <= 0 ? (
+          <span className="tag tag--soldout">Sold out</span>
+        ) : (
+          product.badge && <span className={`tag tag--${product.badge.toLowerCase()}`}>{product.badge}</span>
+        )}
 
         <motion.button
           className={`card__wish ${wished ? 'is-on' : ''}`}
@@ -91,8 +95,8 @@ const ProductCard = forwardRef(function ProductCard({ product, index = 0, varian
           <button onClick={() => setQuick(true)}>
             <Eye size={15} /> Quick view
           </button>
-          <button onClick={() => addToCart(product)} className="card__add">
-            <Plus size={15} /> Add
+          <button onClick={() => addToCart(product)} className="card__add" disabled={product.stock <= 0}>
+            <Plus size={15} /> {product.stock <= 0 ? 'Sold out' : 'Add'}
           </button>
         </div>
       </motion.div>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, CreditCard, Lock, Plane, Smartphone, Truck, Wallet, Zap } from 'lucide-react';
+import { ArrowLeft, Check, CreditCard, Lock, MapPin, Plane, Smartphone, Tag, Truck, Wallet, X, Zap } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { api } from '../lib/api';
 import { FREE_SHIPPING_AT, formatPrice, sized } from '../data/products';
@@ -64,11 +64,49 @@ export default function Checkout() {
   const [payment, setPayment] = useState('upi');
   const [placing, setPlacing] = useState(false);
   const [order, setOrder] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [coupon, setCoupon] = useState(null); // { code, discount, label }
+  const [codeInput, setCodeInput] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [checkingCode, setCheckingCode] = useState(false);
 
+  const items = lines.map((l) => ({ id: l.id, qty: l.qty, color: l.color, material: l.material }));
+
+  // Signed-in customers can pick a saved address; the default one pre-fills an empty form.
+  useEffect(() => {
+    if (!token) return;
+    api('/account/addresses', { token })
+      .then(({ addresses }) => {
+        setAddresses(addresses);
+        const def = addresses.find((a) => a.isDefault);
+        if (def) setForm((f) => (f.address ? f : fillFrom(f, def)));
+      })
+      .catch(() => {});
+  }, [token]);
+
+  // Mirrors the server's maths (GST on the discounted amount); the server's figures are what's charged.
+  const discount = coupon?.discount ?? 0;
+  const taxable = subtotal - discount;
   const ship = METHODS.find((m) => m.id === method);
-  const shipping = subtotal >= FREE_SHIPPING_AT && method === 'ground' ? 0 : ship.price;
-  const gst = Math.round(subtotal * 0.18);
-  const total = subtotal + shipping + gst;
+  const shipping = taxable >= FREE_SHIPPING_AT && method === 'ground' ? 0 : ship.price;
+  const gst = Math.round(taxable * 0.18);
+  const total = taxable + shipping + gst;
+
+  const applyCode = async (e) => {
+    e.preventDefault();
+    if (!codeInput.trim()) return;
+    setCheckingCode(true);
+    setCouponError('');
+    try {
+      setCoupon(await api('/coupons/check', { method: 'POST', body: { code: codeInput, items } }));
+      setCodeInput('');
+    } catch (err) {
+      setCouponError(err.message);
+    } finally {
+      setCheckingCode(false);
+    }
+  };
 
   const go = (n) => {
     setDir(n > step ? 1 : -1);
@@ -100,12 +138,14 @@ export default function Checkout() {
         token,
         body: {
           customer: form,
-          items: lines.map((l) => ({ id: l.id, qty: l.qty, color: l.color, material: l.material })),
+          items,
           method,
           payment,
+          coupon: coupon?.code,
+          saveAddress: !!token && saveAddress,
         },
       });
-      setOrder({ id: saved.id, total: saved.total, items: saved.items.length, email: saved.customer.email });
+      setOrder({ id: saved.id, total: saved.total, items: saved.items.length, signedIn: !!token });
       clearCart();
       // Confirmation renders on the same route, so reset scroll ourselves.
       if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
@@ -113,7 +153,10 @@ export default function Checkout() {
     } catch (err) {
       // Field errors from the server send the shopper back to the form with the message in place.
       const field = err.field?.startsWith('customer.') ? err.field.slice(9) : null;
-      if (field) {
+      if (err.field === 'coupon') {
+        setCoupon(null);
+        setCouponError(err.message);
+      } else if (field) {
         setErrors({ [field]: err.message });
         go(0);
       }
@@ -174,6 +217,29 @@ export default function Checkout() {
                 exit={{ opacity: 0, x: dir * -60 }}
                 transition={{ duration: 0.45, ease }}
               >
+                {step === 0 && addresses.length > 0 && (
+                  <div className="saved-addresses">
+                    <span className="muted small">
+                      <MapPin size={14} /> Deliver to a saved address
+                    </span>
+                    <div className="chips">
+                      {addresses.map((a) => (
+                        <button
+                          type="button"
+                          key={a.id}
+                          className={`chip ${form.address === a.address && form.zip === a.zip ? 'is-active' : ''}`}
+                          onClick={() => {
+                            setForm((f) => fillFrom(f, a));
+                            setErrors({});
+                          }}
+                        >
+                          {a.label} · {a.address.slice(0, 22)}
+                          {a.address.length > 22 ? '…' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {step === 0 && (
                   <div className="form-grid">
                     {FIELDS.map((f) => (
@@ -196,6 +262,12 @@ export default function Checkout() {
                       value={form.notes}
                       onChange={(v) => setForm((s) => ({ ...s, notes: v }))}
                     />
+                    {token && !addresses.some((a) => a.address === form.address && a.zip === form.zip) && (
+                      <label className="check field--wide">
+                        <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} />
+                        Save this address to my account
+                      </label>
+                    )}
                   </div>
                 )}
 
@@ -203,7 +275,7 @@ export default function Checkout() {
                   <div className="radio-cards">
                     {METHODS.map((m) => {
                       const Icon = m.icon;
-                      const free = m.id === 'ground' && subtotal >= FREE_SHIPPING_AT;
+                      const free = m.id === 'ground' && taxable >= FREE_SHIPPING_AT;
                       return (
                         <label key={m.id} className={`radio-card ${method === m.id ? 'is-active' : ''}`}>
                           <input type="radio" name="method" checked={method === m.id} onChange={() => setMethod(m.id)} />
@@ -292,11 +364,45 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
+          {coupon ? (
+            <div className="coupon-applied">
+              <Tag size={15} />
+              <span>
+                <strong>{coupon.code}</strong> · {coupon.label}
+              </span>
+              <button className="icon-btn" onClick={() => setCoupon(null)} aria-label="Remove code">
+                <X size={15} />
+              </button>
+            </div>
+          ) : (
+            <form className="coupon-form" onSubmit={applyCode}>
+              <input
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value.toUpperCase());
+                  setCouponError('');
+                }}
+                placeholder="Discount code"
+                aria-label="Discount code"
+                maxLength={30}
+              />
+              <button className="btn btn--ghost btn--sm" disabled={checkingCode || !codeInput.trim()}>
+                {checkingCode ? <span className="spinner" /> : 'Apply'}
+              </button>
+            </form>
+          )}
+          {couponError && <p className="form-error small">{couponError}</p>}
           <dl>
             <div>
               <dt>Subtotal</dt>
               <dd>{formatPrice(subtotal)}</dd>
             </div>
+            {discount > 0 && (
+              <div className="summary__discount">
+                <dt>Discount ({coupon.code})</dt>
+                <dd>−{formatPrice(discount)}</dd>
+              </div>
+            )}
             <div>
               <dt>Shipping</dt>
               <dd>
@@ -321,6 +427,17 @@ export default function Checkout() {
     </Page>
   );
 }
+
+const fillFrom = (f, a) => ({
+  ...f,
+  name: a.name,
+  phone: a.phone,
+  address: a.address,
+  city: a.city,
+  state: a.state,
+  zip: a.zip,
+  country: a.country,
+});
 
 function Field({ name, label, type = 'text', value, onChange, error, span = 1, textarea, auto, inputMode }) {
   const Tag = textarea ? 'textarea' : 'input';
@@ -388,13 +505,22 @@ function Confirmation({ order }) {
           <p className="eyebrow">Order {order.id}</p>
           <h1 className="display">Thank you. Your new pieces are on their way.</h1>
           <p className="lead">
-            We've sent a confirmation to <strong>{order.email}</strong>. You paid <strong>{formatPrice(order.total)}</strong> for{' '}
-            {order.items} {order.items === 1 ? 'item' : 'items'}. Our delivery team will call you to book a time.
+            You paid <strong>{formatPrice(order.total)}</strong> for {order.items} {order.items === 1 ? 'item' : 'items'}. Our delivery team
+            will call you to book a time.{' '}
+            {order.signedIn
+              ? 'You can follow every step from your account.'
+              : `Keep your order number (${order.id}) handy for any questions.`}
           </p>
           <div className="confirm__ctas">
-            <Link to="/shop" className="btn btn--dark">
-              Keep exploring
-            </Link>
+            {order.signedIn ? (
+              <Link to={`/account/orders/${order.id}`} className="btn btn--dark">
+                Track this order
+              </Link>
+            ) : (
+              <Link to="/shop" className="btn btn--dark">
+                Keep exploring
+              </Link>
+            )}
             <Link to="/" className="btn btn--ghost">
               Back home
             </Link>

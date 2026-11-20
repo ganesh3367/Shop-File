@@ -27,19 +27,19 @@ export async function api(path, { method = 'GET', body, token } = {}) {
   return data;
 }
 
-// Admin token lives in sessionStorage so closing the tab signs the admin out.
+// Admin token is shared by all admin tabs (invoices and packing slips open in a new tab); "Sign out" clears it.
 const ADMIN_KEY = 'gany-admin-token';
 export const adminToken = {
   get: () => {
     try {
-      return sessionStorage.getItem(ADMIN_KEY);
+      return localStorage.getItem(ADMIN_KEY);
     } catch {
       return null;
     }
   },
   set: (t) => {
     try {
-      t ? sessionStorage.setItem(ADMIN_KEY, t) : sessionStorage.removeItem(ADMIN_KEY);
+      t ? localStorage.setItem(ADMIN_KEY, t) : localStorage.removeItem(ADMIN_KEY);
     } catch {
       /* ignore */
     }

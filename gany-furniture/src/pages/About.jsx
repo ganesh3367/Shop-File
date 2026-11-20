@@ -109,11 +109,11 @@ export default function About() {
           />
         </div>
         <ol className="timeline" ref={line}>
-          <motion.span className="timeline__progress" style={{ scaleY: tl }} />
+          <motion.li className="timeline__progress" style={{ scaleY: tl }} aria-hidden role="presentation" />
           {TIMELINE.map((e, i) => (
             <Reveal as="li" key={e.t} delay={i * 0.05}>
               <span className="timeline__year">{e.y}</span>
-              <h4>{e.t}</h4>
+              <h3>{e.t}</h3>
               <p className="muted">{e.d}</p>
             </Reveal>
           ))}

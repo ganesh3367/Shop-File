@@ -55,7 +55,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__top container">
         <div className="footer__news">
-          <h3>Stay close to the studio.</h3>
+          <h2>Stay close to the studio.</h2>
           <p>New collections, workshop stories and private sale invites. No spam, ever.</p>
           <form onSubmit={subscribe} className="footer__form">
             <input
@@ -74,7 +74,7 @@ export default function Footer() {
         <div className="footer__cols">
           {COLUMNS.map((c) => (
             <div key={c.title}>
-              <h4>{c.title}</h4>
+              <h3>{c.title}</h3>
               <ul>
                 {c.links.map(([label, to]) => (
                   <li key={label}>
@@ -91,7 +91,7 @@ export default function Footer() {
             </div>
           ))}
           <div>
-            <h4>Follow</h4>
+            <h3>Follow</h3>
             <div className="footer__social">
               <a href="https://www.instagram.com/ganesh_3367_/?hl=en" target="_blank" rel="noreferrer" aria-label="Instagram">
                 <Instagram size={18} />
@@ -120,7 +120,7 @@ export default function Footer() {
       <div className="footer__bottom container">
         <p>© {new Date().getFullYear()} Gany's Furniture Pvt. Ltd. · Pune, India</p>
         <Magnetic>
-          <button className="footer__top-btn" onClick={toTop}>
+          <button className="footer__top-btn" onClick={toTop} aria-label="Back to top">
             <ArrowUp size={18} />
           </button>
         </Magnetic>

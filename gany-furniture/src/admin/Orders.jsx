@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Download, Search, X } from 'lucide-react';
+import { Download, FileText, PackageCheck, Search, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatPrice, sized } from '../data/products';
 import { useScrollLock } from '../hooks/useLenis';
 import { STATUSES, downloadCSV, fmtDate, fmtDateTime } from './lib';
 import { PageHead } from './Dashboard';
+import { ReturnBadge } from './Returns';
 import { useAdmin } from './data';
 import { Empty, StatusBadge } from './ui';
 
@@ -162,6 +163,7 @@ function OrderPanel({ order, onClose }) {
   const { toast } = useStore();
   const { setOrderStatus } = useAdmin();
   const [saving, setSaving] = useState(false);
+  const [note, setNote] = useState('');
   useScrollLock(true);
   const c = order.customer;
 
@@ -169,8 +171,9 @@ function OrderPanel({ order, onClose }) {
     if (s === order.status || saving) return;
     setSaving(true);
     try {
-      await setOrderStatus(order.id, s);
+      await setOrderStatus(order.id, s, note || undefined);
       toast(`${order.id} marked ${s.toLowerCase()}`);
+      setNote('');
     } catch (err) {
       toast(err.message);
     } finally {
@@ -196,13 +199,37 @@ function OrderPanel({ order, onClose }) {
             <h3>{order.id}</h3>
             <span className="muted small">Placed {fmtDateTime(order.date)}</span>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label="Close">
-            <X size={20} />
-          </button>
+          <div className="row-actions">
+            <a
+              href={`/print/invoice/${order.id}?admin=1`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn--ghost btn--sm"
+              title="Invoice (PDF)"
+            >
+              <FileText size={15} /> Invoice
+            </a>
+            <a
+              href={`/print/slip/${order.id}?admin=1`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn--ghost btn--sm"
+              title="Packing slip"
+            >
+              <PackageCheck size={15} /> Slip
+            </a>
+            <button className="icon-btn" onClick={onClose} aria-label="Close">
+              <X size={20} />
+            </button>
+          </div>
         </header>
         <div className="drawer__body order-panel__body">
           <section>
             <h4>Status</h4>
+            <label className="field field--compact">
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder=" " maxLength={200} />
+              <span className="field__label">Note with the next update (optional, customer sees it)</span>
+            </label>
             <div className="status-picker">
               {STATUSES.map((s) => (
                 <button key={s} className={order.status === s ? 'is-active' : ''} onClick={() => change(s)}>
@@ -235,6 +262,12 @@ function OrderPanel({ order, onClose }) {
                 <dt>Subtotal</dt>
                 <dd>{formatPrice(order.subtotal)}</dd>
               </div>
+              {order.discount > 0 && (
+                <div>
+                  <dt>Discount ({order.couponCode})</dt>
+                  <dd>−{formatPrice(order.discount)}</dd>
+                </div>
+              )}
               <div>
                 <dt>Shipping ({order.method})</dt>
                 <dd>{order.shipping ? formatPrice(order.shipping) : 'Free'}</dd>
@@ -250,10 +283,25 @@ function OrderPanel({ order, onClose }) {
             </dl>
           </section>
 
+          {order.return && (
+            <section>
+              <h4>Return</h4>
+              <p>
+                <ReturnBadge status={order.return.status} /> <strong>{order.return.reason}</strong>
+              </p>
+              {order.return.details && <p className="note">“{order.return.details}”</p>}
+              <Link to="/admin/returns" className="link-btn">
+                Manage in Returns →
+              </Link>
+            </section>
+          )}
+
           <section>
             <h4>Customer</h4>
             <p>
-              <strong>{c.name}</strong>
+              <Link to={`/admin/customers/${encodeURIComponent(c.email)}`} className="table__link">
+                <strong>{c.name}</strong>
+              </Link>
               <br />
               <a href={`mailto:${c.email}`}>{c.email}</a>
               <br />
@@ -270,7 +318,10 @@ function OrderPanel({ order, onClose }) {
             <ol className="timeline-mini">
               {[...(order.history ?? [])].reverse().map((h, i) => (
                 <li key={i}>
-                  <StatusBadge status={h.status} />
+                  <span className="timeline-mini__main">
+                    <StatusBadge status={h.status} />
+                    {h.note && <span className="muted small">“{h.note}”</span>}
+                  </span>
                   <span className="muted small">{fmtDateTime(h.date)}</span>
                 </li>
               ))}
