@@ -1,6 +1,7 @@
-node_modules
-dist
+node_modules/
+/dist/
 .DS_Store
 .env
-data/
-uploads/
+# Local database and uploaded files (kept off GitHub; live on the server disk in production)
+/data/
+/uploads/
