@@ -6,8 +6,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import swaggerUi from 'swagger-ui-express';
-import { ensureAdmin } from './db.js';
-import { UPLOAD_DIR } from './uploads.js';
+import { db, initDb } from './db.js';
+import { serveUpload } from './uploads.js';
 import { openapi } from './openapi.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
@@ -18,8 +18,6 @@ import adminRoutes from './routes/admin.js';
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
 const isProd = process.env.NODE_ENV === 'production';
-
-ensureAdmin();
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -60,7 +58,13 @@ app.use('/api/orders', limit(60));
 app.use('/api/coupons', limit(40));
 app.post('/api/products/:id/reviews', limit(10));
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+// Health check used by Render: also proves the database is reachable.
+app.get('/api/health', (_req, res, next) =>
+  db
+    .get('SELECT 1 AS ok')
+    .then(() => res.json({ ok: true }))
+    .catch(next),
+);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: "Gany's API" }));
 app.get('/api/openapi.json', (_req, res) => res.json(openapi));
 app.use('/api/auth', authRoutes);
@@ -70,8 +74,8 @@ app.use('/api/account', accountRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
-// Uploaded product images, review photos and 3D models.
-app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', fallthrough: false }));
+// Uploaded product images, review photos and 3D models (stored in the database).
+app.get('/uploads/:name', (req, res, next) => serveUpload(req, res).catch(next));
 
 // In production the same server also serves the built React app.
 const dist = path.resolve('dist');
@@ -92,4 +96,10 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong on our side' });
 });
 
-app.listen(PORT, () => console.log(`[api] listening on http://localhost:${PORT}`));
+// Connect to (and if needed set up) the database before accepting requests.
+initDb()
+  .then(() => app.listen(PORT, () => console.log(`[api] listening on http://localhost:${PORT}`)))
+  .catch((err) => {
+    console.error('[db] Could not start:', err.message);
+    process.exit(1);
+  });

@@ -1,6 +1,6 @@
 # Database design
 
-SQLite database (`data/gany.db`), created and migrated automatically by [`server/db.js`](../server/db.js) on start-up. GitHub renders the diagram below.
+SQLite-compatible database: **Turso** in production, a local file (`data/gany.db`) in development. It's created and migrated automatically by [`server/db.js`](../server/db.js) on start-up. GitHub renders the diagram below.
 
 ```mermaid
 erDiagram
@@ -143,12 +143,13 @@ erDiagram
     }
 ```
 
-Two standalone tables are not shown: `messages` (contact form) and `subscribers` (newsletter).
+Three standalone tables are not shown: `messages` (contact form), `subscribers` (newsletter) and `files` (uploaded images and 3D models, stored in the database so they survive on hosts without a disk).
 
 ## Design decisions
 
 - **Order items copy the product's name, image and price.** Later edits to the catalogue never change what an old order or invoice shows.
 - **Stock is reserved inside the order transaction** (`UPDATE … SET stock = stock - ? WHERE stock >= ?`), so two people can't buy the last item at the same time. Cancelling or refunding puts it back.
+- **Related rows are deleted explicitly** (order items, events and returns with their order; reviews and wishlist entries with their product) instead of relying on `ON DELETE CASCADE`, so behaviour is the same on a local file and on Turso.
 - **Products with orders are hidden, not deleted**, so order history and reviews stay intact.
 - **Password reset tokens are stored hashed**, are single-use and expire after 30 minutes.
 - **Sample orders are flagged `demo = 1`.** They never touch real stock and can be removed in one click.

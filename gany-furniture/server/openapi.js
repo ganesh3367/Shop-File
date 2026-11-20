@@ -446,7 +446,7 @@ export const openapi = {
       }),
     },
     '/admin/uploads/model': {
-      post: op('Admin · Catalogue', 'Upload a 3D model (.glb, 25 MB)', {
+      post: op('Admin · Catalogue', 'Upload a 3D model (.glb, 10 MB)', {
         admin: true,
         multipart: true,
         body: obj({ file: { type: 'string', format: 'binary' } }, ['file']),

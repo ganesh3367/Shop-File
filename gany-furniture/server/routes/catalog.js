@@ -1,19 +1,19 @@
-import { Router } from 'express';
-import { db, getProductRow, productFromRow } from '../db.js';
+import { db, getProduct, getProductRow, productsFromRows } from '../db.js';
+import { asyncRouter } from '../http.js';
 import { requireAuth } from '../auth.js';
 import { notifyAdmins } from '../events.js';
-import { imageUpload, publicPath } from '../uploads.js';
+import { imageUpload, saveUpload } from '../uploads.js';
 import { body, reviewSchema } from '../validate.js';
 
-const router = Router();
+const router = asyncRouter();
 
 /** The live catalogue (hidden products excluded). */
-router.get('/products', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM products WHERE active = 1 ORDER BY sort, created_at').all();
-  res.json({ products: rows.map(productFromRow) });
+router.get('/products', async (_req, res) => {
+  const rows = await db.all('SELECT * FROM products WHERE active = 1 ORDER BY sort, created_at');
+  res.json({ products: await productsFromRows(rows) });
 });
 
-const reviewFromRow = (r) => ({
+export const reviewFromRow = (r) => ({
   id: r.id,
   productId: r.product_id,
   name: r.name,
@@ -25,65 +25,75 @@ const reviewFromRow = (r) => ({
   status: r.status,
   date: r.created_at,
 });
-export { reviewFromRow };
 
 /**
  * Product detail extras: approved reviews and "frequently bought together"
- * (products that most often appear in the same orders, topped up from the same category).
+ * (products that most often appear in the same orders, topped up from other categories).
  */
-router.get('/products/:id', (req, res) => {
-  const row = getProductRow(req.params.id);
+router.get('/products/:id', async (req, res) => {
+  const row = await getProductRow(req.params.id);
   if (!row || !row.active) return res.status(404).json({ error: 'Product not found' });
 
-  const reviews = db
-    .prepare("SELECT * FROM reviews WHERE product_id = ? AND status = 'Approved' ORDER BY created_at DESC")
-    .all(row.id)
-    .map(reviewFromRow);
-
-  const together = db
-    .prepare(
+  const [product, reviewRows, togetherRows] = await Promise.all([
+    getProduct(row.id),
+    db.all("SELECT * FROM reviews WHERE product_id = ? AND status = 'Approved' ORDER BY created_at DESC", row.id),
+    db.all(
       `SELECT b.product_id AS id, COUNT(DISTINCT b.order_id) AS n
          FROM order_items a
          JOIN order_items b ON b.order_id = a.order_id AND b.product_id != a.product_id
          JOIN products p ON p.id = b.product_id AND p.active = 1 AND p.stock > 0
         WHERE a.product_id = ?
         GROUP BY b.product_id ORDER BY n DESC LIMIT 3`,
-    )
-    .all(row.id)
-    .map((r) => r.id);
+      row.id,
+    ),
+  ]);
 
+  const together = togetherRows.map((r) => r.id);
   if (together.length < 2) {
     // Not enough order history yet: suggest complementary pieces from the other categories.
-    const fill = db
-      .prepare('SELECT id FROM products WHERE active = 1 AND stock > 0 AND category != ? AND featured = 1 ORDER BY sort LIMIT 4')
-      .all(row.category)
-      .map((r) => r.id)
-      .filter((id) => !together.includes(id));
-    together.push(...fill.slice(0, 2 - together.length));
+    const fill = await db.all(
+      'SELECT id FROM products WHERE active = 1 AND stock > 0 AND category != ? AND featured = 1 ORDER BY sort LIMIT 4',
+      row.category,
+    );
+    together.push(
+      ...fill
+        .map((r) => r.id)
+        .filter((id) => !together.includes(id))
+        .slice(0, 2 - together.length),
+    );
   }
 
-  res.json({ product: productFromRow(row), reviews, together });
+  res.json({ product, reviews: reviewRows.map(reviewFromRow), together });
 });
 
 /** Customers review products; reviews appear once an admin approves them. One review per customer per product. */
-router.post('/products/:id/reviews', requireAuth, imageUpload.single('photo'), body(reviewSchema), (req, res) => {
-  const row = getProductRow(req.params.id);
+router.post('/products/:id/reviews', requireAuth, imageUpload.single('photo'), body(reviewSchema), async (req, res) => {
+  const row = await getProductRow(req.params.id);
   if (!row || !row.active) return res.status(404).json({ error: 'Product not found' });
-  if (db.prepare('SELECT 1 FROM reviews WHERE product_id = ? AND user_id = ?').get(row.id, req.user.id)) {
+  if (await db.get('SELECT 1 AS x FROM reviews WHERE product_id = ? AND user_id = ?', row.id, req.user.id)) {
     return res.status(409).json({ error: "You've already reviewed this product" });
   }
-  const bought = db
-    .prepare(
-      `SELECT 1 FROM order_items i JOIN orders o ON o.id = i.order_id
-        WHERE i.product_id = ? AND o.user_id = ? AND o.status != 'Cancelled' LIMIT 1`,
-    )
-    .get(row.id, req.user.id);
+  const bought = await db.get(
+    `SELECT 1 AS x FROM order_items i JOIN orders o ON o.id = i.order_id
+      WHERE i.product_id = ? AND o.user_id = ? AND o.status != 'Cancelled' LIMIT 1`,
+    row.id,
+    req.user.id,
+  );
 
-  const { lastInsertRowid } = db
-    .prepare('INSERT INTO reviews (product_id, user_id, name, rating, title, body, photo, verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(row.id, req.user.id, req.user.name, req.body.rating, req.body.title, req.body.body, publicPath(req.file), bought ? 1 : 0);
+  const photo = await saveUpload(req.file);
+  const { lastInsertRowid } = await db.run(
+    'INSERT INTO reviews (product_id, user_id, name, rating, title, body, photo, verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    row.id,
+    req.user.id,
+    req.user.name,
+    req.body.rating,
+    req.body.title,
+    req.body.body,
+    photo,
+    bought ? 1 : 0,
+  );
 
-  const review = reviewFromRow(db.prepare('SELECT * FROM reviews WHERE id = ?').get(lastInsertRowid));
+  const review = reviewFromRow(await db.get('SELECT * FROM reviews WHERE id = ?', lastInsertRowid));
   notifyAdmins('review', { id: review.id, product: row.name, rating: review.rating });
   res.status(201).json({ review });
 });

@@ -1,29 +1,25 @@
-# Render Blueprint: one web service runs the website, the API and the SQLite database.
+# Render Blueprint (free plan): one web service runs the website and the API.
+# The free plan has no persistent disk, so all data (database + uploaded files) lives in Turso.
 # Deploy: Render dashboard → New → Blueprint → pick this repository.
 services:
   - type: web
     name: gany-furniture
     runtime: node
     rootDir: gany-furniture
-    # A persistent disk needs a paid instance; the free plan wipes files on every deploy.
-    plan: starter
+    plan: free
     region: singapore
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
-    disk:
-      name: gany-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: '22'
-      # Database and uploaded files live on the persistent disk so they survive deploys.
-      - key: DB_FILE
-        value: /var/data/gany.db
-      - key: UPLOAD_DIR
-        value: /var/data/uploads
+      # Turso database (turso.tech → your database → copy the URL and create a token).
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
       # Signs login tokens. Render generates a random value once and keeps it.
       - key: JWT_SECRET
         generateValue: true
