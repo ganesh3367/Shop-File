@@ -25,7 +25,18 @@ npm run build          # builds the React app into dist/
 npm start              # one Express server serves the website and the API
 ```
 
-Deploy to any Node host with a persistent disk (Render, Railway, a VPS); `data/` and `uploads/` must persist. Static-only hosts (Netlify, Vercel static) can't run the API.
+### Deploying on Render
+
+The repository includes a Render Blueprint ([`render.yaml`](../render.yaml)). It sets up one web service that serves the website and the API, plus a 1 GB persistent disk at `/var/data` for the SQLite database and uploads.
+
+1. In Render: **New → Blueprint**, then choose this GitHub repository.
+2. When asked, enter `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the first admin account. `JWT_SECRET` is generated automatically.
+3. Click **Apply**. Render builds with `npm ci && npm run build`, starts with `npm start`, and waits for `/api/health`.
+4. Open the `…onrender.com` address. The database is created and filled with the catalogue on first start. Sign in to `/admin` with the email and password from step 2.
+
+The disk needs a paid instance (Starter). On the free plan, files are wiped on every deploy. Every push to `main` redeploys automatically, and data on the disk is kept.
+
+Other Node hosts with a persistent disk (Railway, Fly.io, a VPS) work the same way: set `DB_FILE` and `UPLOAD_DIR` to paths on the disk. Static-only hosts (Netlify, Vercel static) can't run the API.
 
 No email service is used. Password reset links are shown on screen in development, and in production an admin creates one from the customer's profile and sends it to them.
 
