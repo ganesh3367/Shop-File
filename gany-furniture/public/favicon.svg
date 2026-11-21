@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d06a3c"/>
+      <stop offset="1" stop-color="#9c4523"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <!-- lounge chair: tilted backrest, cushion, tapered legs -->
+  <g fill="#fbf9f5">
+    <rect x="14" y="11" width="10" height="31" rx="5" transform="rotate(-14 19 26.5)"/>
+    <rect x="15" y="33" width="35" height="10" rx="5"/>
+  </g>
+  <path d="M23 43 L18.5 54 M43 43 L47.5 54" stroke="#fbf9f5" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="47" cy="17" r="4" fill="#fab219"/>
+</svg>
